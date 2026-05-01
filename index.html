@@ -4,14 +4,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>GARP Screener v2.4</title>
+<title>GARP Screener v3.0</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html{scroll-behavior:smooth;background:#08080e;}
-body{background-color:#08080e!important;color:#dde0f0;font-family:'Crimson Pro',Georgia,serif;min-height:100vh;overflow-x:hidden;}
+body{background:#08080e;color:#dde0f0;font-family:'Crimson Pro',Georgia,serif;min-height:100vh;overflow-x:hidden;}
 :root{--bg:#08080e;--surface:#0f0f18;--border:#1c1c2e;--border2:#252538;--accent:#e8f535;--accent2:#35e8c8;--accent3:#e87535;--text:#dde0f0;--muted:#4a4a6a;--muted2:#6a6a8a;--red:#e83555;--gold:#e8b535;--green:#35e875;}
 body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 40% at 15% 5%,rgba(232,245,53,0.05) 0%,transparent 55%),radial-gradient(ellipse 50% 30% at 85% 85%,rgba(53,232,200,0.03) 0%,transparent 50%);pointer-events:none;z-index:0;}
 .container{position:relative;z-index:1;max-width:1400px;margin:0 auto;padding:36px 16px 80px;}
@@ -23,44 +23,35 @@ h1 em{color:var(--accent);font-style:normal;}
 .universe-count{text-align:right;flex-shrink:0;}
 .big-num{font-family:'Bebas Neue',sans-serif;font-size:52px;color:var(--accent);line-height:1;}
 .big-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted2);letter-spacing:0.12em;}
-.subtitle{font-size:14px;color:var(--muted2);font-style:italic;line-height:1.7;max-width:500px;margin-bottom:20px;}
-.weights{display:flex;flex-wrap:wrap;gap:6px;}
-.wchip{font-family:'DM Mono',monospace;font-size:9px;padding:4px 10px;border:1px solid var(--border2);color:var(--muted2);letter-spacing:0.06em;}
-.wchip b{color:var(--accent);}.wchip.bc b{color:var(--accent3);}
+.subtitle{font-size:14px;color:var(--muted2);font-style:italic;line-height:1.7;max-width:540px;margin-bottom:14px;}
 .controls{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
-.btn{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:8px 14px;border:1px solid var(--border2);background:var(--surface);color:var(--muted2);cursor:pointer;transition:all 0.15s;-webkit-appearance:none;border-radius:0;}
+.btn{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:8px 14px;border:1px solid var(--border2);background:var(--surface);color:var(--muted2);cursor:pointer;-webkit-appearance:none;border-radius:0;transition:all 0.15s;}
 .btn:hover,.btn.active{border-color:var(--accent);color:var(--accent);background:rgba(232,245,53,0.05);}
 .btn-run{background:var(--accent);color:var(--bg);border-color:var(--accent);font-weight:500;padding:8px 22px;}
 .btn-run:hover{background:#eef840;}
 .btn-run:disabled{opacity:0.35;cursor:not-allowed;}
-.status-bar{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted2);margin-bottom:8px;min-height:16px;display:flex;align-items:center;gap:7px;line-height:1.5;}
-.pulse{width:5px;height:5px;border-radius:50%;background:var(--accent);animation:pulse 1s infinite;flex-shrink:0;}
+.status-bar{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted2);margin-bottom:20px;min-height:16px;display:flex;align-items:center;gap:7px;line-height:1.5;}
+.pulse{width:5px;height:5px;border-radius:50%;background:var(--accent);animation:pulse 1s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.1}}
-.coverage-wrap{margin-bottom:8px;display:none;}
-.coverage-row{display:flex;justify-content:space-between;margin-bottom:6px;}
-.coverage-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted2);letter-spacing:0.1em;}
-.coverage-nums{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted2);}
-.coverage-nums b{color:var(--accent);}
 .prog-wrap{height:2px;background:var(--border);margin-bottom:20px;display:none;}
-.prog-fill{height:100%;background:var(--accent);transition:width 0.3s ease;width:0%;}
+.prog-fill{height:100%;background:var(--accent);transition:width 0.3s;width:0%;}
 .section-hd{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-top:44px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);}
 .section-hd:first-child{margin-top:0;}
 .section-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:0.06em;}
 .section-count{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);}
 .section-desc{font-size:12px;color:var(--muted2);font-style:italic;margin-left:auto;}
 .t-qos{color:var(--accent);}.t-a{color:var(--accent2);}.t-b{color:var(--accent3);}.t-risk{color:var(--red);}
-.distress-banner{background:rgba(232,53,85,0.07);border:1px solid rgba(232,53,85,0.25);padding:10px 14px;font-family:'DM Mono',monospace;font-size:10px;color:var(--red);margin-bottom:16px;line-height:1.6;}
 .tbl-wrap{overflow-x:auto;border:1px solid var(--border);-webkit-overflow-scrolling:touch;}
-table{width:100%;border-collapse:collapse;font-size:12px;min-width:800px;}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:780px;}
 thead th{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);padding:10px 12px;text-align:left;background:var(--surface);border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;}
 thead th:hover{color:var(--accent);}thead th.sorted{color:var(--accent);}
-tbody tr{border-bottom:1px solid rgba(28,28,46,0.6);transition:background 0.1s;}
+tbody tr{border-bottom:1px solid rgba(28,28,46,0.6);}
 tbody tr:hover{background:rgba(232,245,53,0.02);}
 td{padding:10px 12px;white-space:nowrap;vertical-align:middle;}
 .rank-n{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);}
 .ticker-c{font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:0.05em;color:var(--text);}
-.ticker-qos{color:var(--accent)!important;}
-.name-c{font-size:12px;font-style:italic;max-width:150px;overflow:hidden;text-overflow:ellipsis;color:var(--text);}
+.ticker-qos{color:var(--accent)!important;}.ticker-b{color:var(--accent3)!important;}
+.name-c{font-size:12px;font-style:italic;max-width:160px;overflow:hidden;text-overflow:ellipsis;color:var(--text);}
 .badge{font-family:'DM Mono',monospace;font-size:8px;padding:2px 6px;border:1px solid var(--border2);color:var(--muted);letter-spacing:0.07em;}
 .badge-tsx{border-color:var(--accent2);color:var(--accent2);}
 .sc-wrap{display:flex;align-items:center;gap:7px;min-width:80px;}
@@ -68,7 +59,7 @@ td{padding:10px 12px;white-space:nowrap;vertical-align:middle;}
 .sc-bar{flex:1;height:3px;background:var(--border);}
 .sc-fill{height:100%;}
 .metric{font-family:'DM Mono',monospace;font-size:11px;text-align:right;}
-.cg{color:var(--green)}.co{color:var(--gold)}.cb{color:var(--red)}.cn{color:var(--muted)}.ca{color:var(--accent)}
+.cg{color:var(--green)}.co{color:var(--gold)}.cb{color:var(--red)}.cn{color:var(--muted)}
 .sh{color:var(--accent)}.sm{color:var(--gold)}.sl{color:var(--red)}
 .fh{background:var(--accent)}.fm{background:var(--gold)}.fl{background:var(--red)}
 .flags{font-size:11px;letter-spacing:2px;}
@@ -86,59 +77,42 @@ td{padding:10px 12px;white-space:nowrap;vertical-align:middle;}
 <header>
   <div class="header-row">
     <div>
-      <div class="label">// GARP Intelligence Engine v2.4</div>
+      <div class="label">// GARP Engine v3.0 — Clean Rewrite</div>
       <h1>GROWTH AT A<br><em>REASONABLE</em><br>PRICE</h1>
     </div>
     <div class="universe-count">
-      <div class="big-num">1,200</div>
+      <div class="big-num">560</div>
       <div class="big-label">Companies</div>
     </div>
   </div>
-  <p class="subtitle">Three-stage systematic screen across S&P 1000 + TSX 200. Quality compounders, turnarounds, and structural risks — separated and ranked.</p>
-  <div class="weights">
-    <div class="wchip">ROIC normalized <b>30%</b></div>
-    <div class="wchip">FCF Yield <b>35%</b></div>
-    <div class="wchip">EV/EBIT vs peers <b>25%</b></div>
-    <div class="wchip">Rev CAGR <b>10%</b></div>
-    <div class="wchip bc">B: FCF vs history <b>35%</b></div>
-    <div class="wchip bc">Margin stabilized <b>28%</b></div>
-    <div class="wchip bc">Sector underperf <b>22%</b></div>
-    <div class="wchip bc">EV/EBIT vs history <b>15%</b></div>
-  </div>
+  <p class="subtitle">Quality compounders, turnarounds with recovery signature, and structural risks — separated, scored, ranked.</p>
 </header>
 
 <div class="controls">
   <button class="btn active" id="f-all" onclick="setFilter('all')">All</button>
-  <button class="btn" id="f-sp" onclick="setFilter('sp')">S&P 1000</button>
-  <button class="btn" id="f-tsx" onclick="setFilter('tsx')">TSX 200</button>
-  <button class="btn" id="f-qos" onclick="setFilter('qos')">⭐ Quality on Sale</button>
+  <button class="btn" id="f-sp" onclick="setFilter('sp')">S&P</button>
+  <button class="btn" id="f-tsx" onclick="setFilter('tsx')">TSX</button>
+  <button class="btn" id="f-qos" onclick="setFilter('qos')">⭐ QoS</button>
   <button class="btn" id="f-b" onclick="setFilter('b')">Turnarounds</button>
-  <button class="btn-run btn" id="runBtn" onclick="runScreen()">▶ Run Full Screen</button>
+  <button class="btn-run btn" id="runBtn" onclick="runScreen()">▶ Run Screen</button>
 </div>
 
-<div class="status-bar" id="statusBar">Ready — v2.4: full data coverage, TSX format fix, faster run.</div>
-<div class="coverage-wrap" id="coverageWrap">
-  <div class="coverage-row">
-    <span class="coverage-label">COVERAGE</span>
-    <span class="coverage-nums">Got: <b id="covGot">0</b> &nbsp;·&nbsp; Skip: <b id="covSkip">0</b> &nbsp;·&nbsp; Retry: <b id="covRetry">0</b> &nbsp;·&nbsp; of <b id="covTotal">0</b></span>
-  </div>
-</div>
+<div class="status-bar" id="statusBar">Ready. v3.0 uses 3 endpoints, honest data handling, proper Bucket B logic.</div>
 <div class="prog-wrap" id="progWrap"><div class="prog-fill" id="progFill"></div></div>
-<div id="output"><div class="empty"><div class="ico">📊</div><p>Results will appear here as the screen runs.</p></div></div>
+<div id="output"><div class="empty"><div class="ico">📊</div><p>Press Run Screen to begin.</p></div></div>
 
 <div class="legend">
-  <div class="leg-item"><div class="leg-dot" style="background:var(--accent)"></div>Score ≥ 60</div>
-  <div class="leg-item"><div class="leg-dot" style="background:var(--gold)"></div>Score 35–59</div>
-  <div class="leg-item"><div class="leg-dot" style="background:var(--red)"></div>Score &lt; 35</div>
-  <div class="leg-item">⭐ Quality on Sale</div>
-  <div class="leg-item">🟡 Gate warning</div>
-  <div class="leg-item">📉 Margin declining</div>
-  <div class="leg-item">🔔 Cyclical trough</div>
-  <div class="leg-item">🔄 Cycle confirmed</div>
-  <div class="leg-item">🏳️ Controlled float (&lt;20%)</div>
-  <div class="leg-item">📋 Limited FCF data</div>
+  <div class="leg-item"><div class="leg-dot" style="background:var(--accent)"></div>≥60</div>
+  <div class="leg-item"><div class="leg-dot" style="background:var(--gold)"></div>35–59</div>
+  <div class="leg-item"><div class="leg-dot" style="background:var(--red)"></div>&lt;35</div>
+  <div class="leg-item">⭐ Quality on Sale (top-ROIC + cheap)</div>
+  <div class="leg-item">🔁 FCF inflecting up</div>
+  <div class="leg-item">💪 Margin recovering</div>
+  <div class="leg-item">🔻 EV/EBIT vs history low</div>
+  <div class="leg-item">🟡 Watch (1 gate concern)</div>
+  <div class="leg-item">📋 Limited data</div>
 </div>
-<div class="footnote">* Not investment advice. Algorithmic scores only. Data via Financial Modeling Prep. PEG shown for reference — contributes zero to scoring.</div>
+<div class="footnote">* Not investment advice. Algorithmic scores only. Data from Financial Modeling Prep. Use as candidate generator — apply your own judgment.</div>
 </div>
 
 <script>
@@ -146,37 +120,29 @@ const API_KEY='SqXWkBu3Q8MhyBogRRKtFsLqCpqBOJWH';
 const BASE='https://financialmodelingprep.com/stable';
 const MAX_RETRIES=2;
 const RETRY_DELAY=1500;
-const BATCH_SIZE=5;
-const BATCH_DELAY=500;
+const BATCH_SIZE=6;
+const BATCH_DELAY=350;
 
-// S&P tickers
-const SP_TICKERS=['AAPL','MSFT','NVDA','AMZN','GOOGL','META','TSLA','BRK-B','AVGO','JPM','LLY','UNH','V','XOM','MA','COST','HD','PG','JNJ','ABBV','BAC','MRK','CRM','ORCL','CVX','KO','WMT','NFLX','AMD','PEP','ACN','TMO','MCD','ADBE','ABT','LIN','DHR','TXN','CSCO','NKE','DIS','QCOM','WFC','PM','AMGN','INTC','IBM','INTU','SPGI','GE','RTX','CAT','NOW','MS','GS','BLK','AXP','HON','BA','SCHW','UNP','ELV','ISRG','SYK','MMC','VRTX','MDT','ADP','CI','MO','DE','ZTS','GILD','BKNG','PLD','TJX','REGN','CVS','SO','DUK','ADI','LRCX','KLAC','AMAT','MRVL','PANW','COP','EOG','SLB','MU','ETN','EMR','ITW','PH','ROK','GWW','FAST','AME','CARR','OTIS','ECL','SHW','PPG','APD','NEM','FCX','DOW','LYB','CF','MOS','HUM','CNC','MOH','MCK','CAH','ABC','CBRE','WELL','SPG','PSA','EQR','AVB','O','SBAC','AMT','CCI','EQIX','VZ','TMUS','CHTR','CMCSA','NXPI','MCHP','TER','WDC','HPQ','DELL','HPE','CDNS','SNPS','ANSS','FICO','MSCI','ICE','CME','NDAQ','CBOE','MCO','FIS','FI','GPN','PYPL','COF','SYF','DFS','AIG','MET','PRU','AFL','ALL','TRV','CB','PGR','HIG','MTB','RF','CFG','HBAN','FITB','KEY','STT','BK','NTRS','RJF','TROW','BEN','IVZ','AMG','VOYA','LPLA','FNF','FAF','HRB','SCI','FIVE','OLLI','CASY','CLX','CHD','KMB','ENR','EL','RL','PVH','HBI','URBN','ROST','BURL','GPS','KSS','JWN','DKS','FL','SKX','WWW','CROX','DECK','ONON','BC','THO','WGO','MHO','MDC','MTH','TMHC','SKY','TREX','AZEK','MAS','WHR','SWK','TT','LII','AAON','ENTG','MPWR','ONTO','FORM','COHU','WOLF','STLD','NUE','CMC','RS','ATI','CRS','URI','MGRC','GATX','AL','AER','ACM','WSP','EXPO','PRIM','ROAD','TPC','MYR','STRL','DY','GLDD','POWL','PIKE','KFRC','CSWI','HSII','FCFS','PRAA','ENVA','ANDE','INGR','BG','ADM','NYT','GTN','SBGI','FOXA','FOX','PARA','WBD','LYV','MSGS','GHC','HLT','MAR','H','IHG','CHH','RHP','SHO','PEB','XHR','APLE','CLDT','NCLH','RCL','CCL','SEAS','FUN','SIX','PLNT','DAL','UAL','AAL','LUV','ALK','JBLU','HA','SKYW','ATSG','CHRW','EXPD','FWRD','ECHO','ODFL','SAIA','WERN','KNX','HTLD','MRTN','ARCB','JBHT','XPO','GXO','UPS','FDX','HEES','IIIN','KALU','WOR','ZEUS','USAP','QCRH','MGPI','BOOT','CATO','VFC','MOD','LCII','PATK','FOXF','CWH','LAZY','MPX','CVCO','PGTI','JELD','FBHS','SNAP','NXST','GCI','MDP','SSP','IMAX','CNK','AMC','LIVE','EDU','TAL','LAUR','STRA','PRDO','LINC','UTI','TNL','HGV','VAC','MTN','BYD','CZR','MGM','WYNN','LVS','PENN','DKNG','CHDN','EVRI','SGMS','IGT','LNW','LANC','JJSF','FRPT','SPTN','PFGC','CHEF','USFD','SYY','POST','SMPL','HAIN','MDLZ','CAG','CPB','GIS','K','SJM','MKC','HRL'];
+const SP_TICKERS=['AAPL','MSFT','NVDA','AMZN','GOOGL','META','TSLA','BRK-B','AVGO','JPM','LLY','UNH','V','XOM','MA','COST','HD','PG','JNJ','ABBV','BAC','MRK','CRM','ORCL','CVX','KO','WMT','NFLX','AMD','PEP','ACN','TMO','MCD','ADBE','ABT','LIN','DHR','TXN','CSCO','NKE','DIS','QCOM','WFC','PM','AMGN','INTC','IBM','INTU','SPGI','GE','RTX','CAT','NOW','MS','GS','BLK','AXP','HON','BA','SCHW','UNP','ELV','ISRG','SYK','MMC','VRTX','MDT','ADP','CI','MO','DE','ZTS','GILD','BKNG','PLD','TJX','REGN','CVS','SO','DUK','ADI','LRCX','KLAC','AMAT','MRVL','PANW','COP','EOG','SLB','MU','ETN','EMR','ITW','PH','ROK','GWW','FAST','AME','CARR','OTIS','ECL','SHW','PPG','APD','NEM','FCX','DOW','LYB','CF','MOS','HUM','CNC','MOH','MCK','CAH','CBRE','WELL','SPG','PSA','EQR','AVB','O','SBAC','AMT','CCI','EQIX','VZ','TMUS','CHTR','CMCSA','NXPI','MCHP','TER','WDC','HPQ','DELL','HPE','CDNS','SNPS','ANSS','FICO','MSCI','ICE','CME','NDAQ','CBOE','MCO','FIS','FI','GPN','PYPL','COF','SYF','DFS','AIG','MET','PRU','AFL','ALL','TRV','CB','PGR','HIG','MTB','RF','CFG','HBAN','FITB','KEY','STT','BK','NTRS','RJF','TROW','BEN','IVZ','AMG','VOYA','LPLA','FNF','FAF','HRB','SCI','FIVE','OLLI','CASY','CLX','CHD','KMB','EL','RL','PVH','URBN','ROST','BURL','GPS','KSS','JWN','DKS','FL','SKX','CROX','DECK','ONON','BC','THO','WGO','MHO','MDC','MTH','TMHC','SKY','TREX','AZEK','MAS','WHR','SWK','TT','LII','AAON','ENTG','MPWR','ONTO','FORM','COHU','STLD','NUE','CMC','RS','ATI','CRS','URI','MGRC','GATX','AL','AER','ACM','WSP','EXPO','PRIM','ROAD','TPC','MYR','STRL','DY','POWL','PIKE','KFRC','CSWI','FCFS','PRAA','ENVA','ANDE','INGR','BG','ADM','NYT','GTN','SBGI','FOXA','FOX','PARA','WBD','LYV','MSGS','GHC','HLT','MAR','H','RHP','SHO','PEB','XHR','APLE','NCLH','RCL','CCL','SEAS','SIX','PLNT','DAL','UAL','AAL','LUV','ALK','JBLU','SKYW','ATSG','CHRW','EXPD','ECHO','ODFL','SAIA','WERN','KNX','ARCB','JBHT','XPO','GXO','UPS','FDX','HEES','BOOT','VFC','MOD','LCII','PATK','FOXF','CWH','CVCO','NXST','GCI','MDP','SSP','IMAX','CNK','EDU','TAL','LAUR','STRA','PRDO','LINC','TNL','HGV','VAC','MTN','BYD','CZR','MGM','WYNN','LVS','PENN','DKNG','CHDN','IGT','LANC','JJSF','FRPT','SPTN','PFGC','CHEF','USFD','SYY','POST','SMPL','MDLZ','CAG','CPB','GIS','K','SJM','MKC','HRL'];
 
-// TSX tickers — FMP uses exchange suffix format: TSX stocks use just the symbol without .TO for the stable API
-// Providing both formats: primary without suffix, will try with suffix as fallback
-const TSX_RAW=['RY','TD','BN','CNR','ENB','CP','BMO','BCE','TRI','SU','MFC','ATD','CSU','WCN','AEM','TRP','L','CVE','ABX','FFH','CNQ','BNS','CM','POW','SLF','QSR','T','FTS','WPM','CIGI','CCO','DOL','MG','TOU','GFL','NTR','IMO','EIF','MTY','BAM','IFC','PPL','PKI','FSV','PBH','GWO','IAG','MRU','WN','BTO','FM','LUN','HBM','ERO','MEG','OVV','ARX','BTE','CPG','VET','CJT','TCN','MRC','SHOP','ENGH','DSG','OTEX','BB','MDF','DCBO','NVEI','WELL','KL','OR','MAG','WDO','OSK','ELD','IMG','YRI','SSL','AGI','ALA','EMA','CU','CPX','NPI','BLX','INE','RNW','GIL','MTL','TA','ATZ','ERF','PEY','AAV','BIR','TVE','FRU','CWB','EQB','NA','CFP','IFP','WFG','OSB','AC','CHR','TIH','SJ','RUS','NFI','MDA','LIF','MEQ','MFI','MSI','NWC','SCL','STB','FFH','POW','KEY'];
-
-// TSX tickers with .TO suffix for FMP stable API
-const TSX_TICKERS=TSX_RAW.map(t=>t+'.TO');
-
-const CYCLICAL=['energy','materials','industrials','consumer cyclical','semiconductors','basic materials'];
+const TSX_TICKERS=['RY.TO','TD.TO','BN.TO','CNR.TO','ENB.TO','CP.TO','BMO.TO','BCE.TO','TRI.TO','SU.TO','MFC.TO','ATD.TO','CSU.TO','WCN.TO','AEM.TO','TRP.TO','L.TO','CVE.TO','ABX.TO','FFH.TO','CNQ.TO','BNS.TO','CM.TO','GIB-A.TO','POW.TO','SLF.TO','QSR.TO','RCI-B.TO','T.TO','FTS.TO','WPM.TO','CIGI.TO','CCO.TO','DOL.TO','MG.TO','TOU.TO','GFL.TO','NTR.TO','IMO.TO','EIF.TO','MTY.TO','BAM.TO','IFC.TO','PPL.TO','KEY.TO','PKI.TO','FSV.TO','PBH.TO','GWO.TO','IAG.TO','EMP-A.TO','MRU.TO','SAP.TO','WN.TO','CTC-A.TO','BTO.TO','FM.TO','LUN.TO','HBM.TO','ERO.TO','TCL-A.TO','MEG.TO','OVV.TO','ARX.TO','BTE.TO','CPG.TO','VET.TO','CJT.TO','SHOP.TO','KXS.TO','ENGH.TO','DSG.TO','OTEX.TO','BB.TO','MDF.TO','DCBO.TO','NVEI.TO','WELL.TO','OR.TO','MAG.TO','WDO.TO','OSK.TO','ELD.TO','IMG.TO','AGI.TO','ALA.TO','EMA.TO','CU.TO','CPX.TO','NPI.TO','BLX.TO','INE.TO','GIL.TO','MTL.TO','TA.TO','ATZ.TO','PEY.TO','AAV.TO','BIR.TO','TVE.TO','FRU.TO','CWB.TO','EQB.TO','NA.TO','CFP.TO','IFP.TO','WFG.TO','OSB.TO','AC.TO','CHR.TO','TIH.TO','SJ.TO','RUS.TO','NFI.TO','MDA.TO','LIF.TO','MEQ.TO','MFI.TO','MSI.TO','NWC.TO','SCL.TO','STB.TO'];
 
 let allResults=[],structural=[],sectorStats={};
 let currentFilter='all';
-let sortStates={qos:{col:'score',dir:'desc'},a:{col:'score',dir:'desc'},b:{col:'score',dir:'desc'},risk:{col:'ticker',dir:'asc'}};
-let covGot=0,covSkip=0,covRetry=0;
+let sortStates={qos:{col:'score',dir:'desc'},a:{col:'score',dir:'desc'},b:{col:'score',dir:'desc'}};
+let covGot=0,covSkip=0;
 
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
 
 async function fmpFetch(url){
   for(let attempt=0;attempt<MAX_RETRIES;attempt++){
     try{
-      if(attempt>0){covRetry++;updateCov();await sleep(RETRY_DELAY*attempt);}
+      if(attempt>0)await sleep(RETRY_DELAY*attempt);
       const r=await fetch(url);
       if(r.status===429){await sleep(RETRY_DELAY*(attempt+2));continue;}
       if(!r.ok)return null;
       const data=await r.json();
-      if(data?.['Error Message']||!data)return null;
+      if(!data||data?.['Error Message'])return null;
       return data;
     }catch(e){if(attempt===MAX_RETRIES-1)return null;}
   }
@@ -186,251 +152,339 @@ async function fmpFetch(url){
 async function fetchAll(ticker){
   const enc=encodeURIComponent(ticker);
   const k=`&apikey=${API_KEY}`;
-
-  // 6 parallel calls — profile, ratios, key-metrics, income-Q, income-A, balance-sheet
-  const[profile,ratios,metrics,incomeQ,incomeA,balanceSheet]=await Promise.all([
+  const[profile,metrics,incomeA]=await Promise.all([
     fmpFetch(`${BASE}/profile?symbol=${enc}${k}`),
-    fmpFetch(`${BASE}/ratios?symbol=${enc}&limit=5${k}`),
     fmpFetch(`${BASE}/key-metrics?symbol=${enc}&limit=5${k}`),
-    fmpFetch(`${BASE}/income-statement?symbol=${enc}&limit=8&period=quarter${k}`),
-    fmpFetch(`${BASE}/income-statement?symbol=${enc}&limit=6${k}`),
-    fmpFetch(`${BASE}/balance-sheet-statement?symbol=${enc}&limit=4${k}`),
+    fmpFetch(`${BASE}/income-statement?symbol=${enc}&limit=5${k}`),
   ]);
-
   const p=Array.isArray(profile)&&profile.length>0?profile:null;
   if(!p)return null;
   return{
     profile:p,
-    ratios:Array.isArray(ratios)?ratios:[],
     metrics:Array.isArray(metrics)?metrics:[],
-    incomeQ:Array.isArray(incomeQ)?incomeQ:[],
     incomeA:Array.isArray(incomeA)?incomeA:[],
-    balanceSheet:Array.isArray(balanceSheet)?balanceSheet:[],
   };
 }
 
-function gv(arr,key,i=0){
-  if(!arr||!arr[i])return null;
-  const v=arr[i][key];
-  return(v==null||v===''||isNaN(Number(v)))?null:Number(v);
-}
-function avg(a){
-  const c=a.filter(v=>v!==null&&!isNaN(v));
-  return c.length?c.reduce((x,y)=>x+y,0)/c.length:null;
-}
-function getSector(p){
-  const p0=Array.isArray(p)?p[0]:p;
-  return p0?.sector||p0?.industry||'Unknown';
-}
-function isCyc(s){return CYCLICAL.some(c=>s.toLowerCase().includes(c));}
+// === Helpers ===
+function num(v){return(v==null||v===''||isNaN(Number(v)))?null:Number(v);}
+function gv(arr,key,i=0){return arr&&arr[i]?num(arr[i][key]):null;}
+function avg(a){const c=a.filter(v=>v!==null&&!isNaN(v));return c.length?c.reduce((x,y)=>x+y,0)/c.length:null;}
 
-function getMktCap(p0){
-  const v=p0?.mktCap||p0?.marketCap||p0?.marketCapitalization;
-  return(v&&Number(v)>0)?Number(v):null;
-}
+function getMktCap(p0){return num(p0?.mktCap)||num(p0?.marketCap)||null;}
+function getSector(p){const p0=Array.isArray(p)?p[0]:p;return p0?.sector||p0?.industry||'Unknown';}
 
-function getFloatPct(p0){
-  const f=p0?.floatShares,s=p0?.sharesOutstanding||p0?.outstandingShares;
-  if(f&&s&&Number(s)>0){
-    const pct=Number(f)/Number(s);
-    return(pct>0&&pct<=1)?pct:null;
-  }
-  return null;
-}
-
-// Revenue from annual income statement
+// Returns array of revenues, most-recent first
 function getRevenues(d){
   if(!d.incomeA||!d.incomeA.length)return[];
-  const revs=[];
-  for(let i=0;i<Math.min(6,d.incomeA.length);i++){
-    const r=d.incomeA[i]?.revenue;
-    if(r!=null&&!isNaN(Number(r))&&Number(r)>0)revs.push(Number(r));
-  }
-  return revs;
+  return d.incomeA.map(x=>num(x?.revenue)).filter(v=>v!==null&&v>0);
 }
 
-// Net debt from balance sheet: totalDebt - cashAndCashEquivalents
-function getNetDebt(d,i=0){
-  // Try key-metrics first
-  const m=d.metrics?.[i];
-  if(m){
-    const nd=m.netDebt;
-    if(nd!=null&&!isNaN(Number(nd)))return Number(nd);
-  }
-  // Fallback: balance sheet
-  const bs=d.balanceSheet?.[i];
-  if(bs){
-    const debt=bs.totalDebt??bs.longTermDebt??bs.totalLiabilities;
-    const cash=bs.cashAndCashEquivalents??bs.cash??bs.cashAndShortTermInvestments;
-    if(debt!=null&&cash!=null&&!isNaN(Number(debt))&&!isNaN(Number(cash))){
-      return Number(debt)-Number(cash);
-    }
-  }
-  return null;
+// Returns array of margins (gross profit ratio), most-recent first
+function getMargins(d){
+  if(!d.incomeA||!d.incomeA.length)return[];
+  return d.incomeA.map(x=>num(x?.grossProfitRatio)).filter(v=>v!==null);
 }
 
-// FCF from key-metrics freeCashFlowPerShare * shares, or from income-A operatingCF - capex
-function getFCF(d,i,shares){
-  const m=d.metrics?.[i];
-  if(m){
-    const fcfps=m.freeCashFlowPerShare;
-    if(fcfps!=null&&!isNaN(Number(fcfps))&&shares>0)return Number(fcfps)*shares;
-    const fcf=m.freeCashFlow;
-    if(fcf!=null&&!isNaN(Number(fcf)))return Number(fcf);
-  }
-  return null;
+// Returns array of FCF yields from key-metrics, most-recent first
+function getFcfYields(d){
+  if(!d.metrics||!d.metrics.length)return[];
+  return d.metrics.map(x=>num(x?.freeCashFlowYield)).filter(v=>v!==null);
 }
 
-function getFCFArr(d,shares){
-  const arr=[];
-  for(let i=0;i<5;i++){
-    const f=getFCF(d,i,shares);
-    if(f!==null)arr.push(f);
-  }
-  return arr;
+// Returns array of ROICs, most-recent first
+function getROICs(d){
+  if(!d.metrics||!d.metrics.length)return[];
+  return d.metrics.map(x=>num(x?.returnOnInvestedCapital)).filter(v=>v!==null);
 }
 
-function runGate(d,sec,shares){
+// EV/EBIT history
+function getEvEbits(d){
+  if(!d.metrics||!d.metrics.length)return[];
+  return d.metrics.map(x=>{
+    const v=num(x?.enterpriseValueOverEBIT)||num(x?.enterpriseValueMultiple);
+    return(v!==null&&v>0)?v:null;
+  }).filter(v=>v!==null);
+}
+
+// Net debt — single number (most recent), or null
+function getNetDebt(d){
+  if(!d.metrics||!d.metrics.length)return null;
+  return num(d.metrics[0]?.netDebt);
+}
+
+// FCF (absolute, not per-share)
+function getFcfAbs(d){
+  if(!d.metrics||!d.metrics.length)return[];
+  return d.metrics.map(x=>{
+    const fcf=num(x?.freeCashFlow);
+    if(fcf!==null)return fcf;
+    const fcfps=num(x?.freeCashFlowPerShare);
+    return null; // skip if no absolute FCF
+  }).filter(v=>v!==null);
+}
+
+// === Stage 1: Gate ===
+function runGate(d,sec){
   const flags=[];let failures=0;const reasons=[];
 
-  // Revenue CAGR
+  // Revenue check: must be growing (positive 4yr CAGR) or stable (within -5%)
   const revs=getRevenues(d);
-  if(revs.length>=2){
-    const cagr=Math.pow(revs[0]/revs[revs.length-1],1/(revs.length-1))-1;
-    if(isCyc(sec)){
-      const margins=[];
-      for(let i=0;i<Math.min(8,d.incomeQ.length);i++){const m=d.incomeQ[i]?.grossProfitRatio;if(m!=null&&!isNaN(m))margins.push(Number(m));}
-      if(margins.length>=4){
-        const r2=(margins[0]+margins[1])/2,p2=(margins[2]+margins[3])/2;
-        const stab=r2>=p2*0.99,accel=margins.length>=3&&(margins[1]-margins[0])>(margins[2]-margins[1])+0.005;
-        if(!stab||accel){failures++;reasons.push('Cyclical: margin not stabilized');}else flags.push('🔄');
-      }
-    }else{
-      if(cagr<0){failures++;reasons.push(`Rev CAGR ${(cagr*100).toFixed(1)}%`);}
+  let revCagr=null;
+  if(revs.length>=3){
+    revCagr=Math.pow(revs[0]/revs[revs.length-1],1/(revs.length-1))-1;
+    if(revCagr<-0.05){failures++;reasons.push(`Rev declining ${(revCagr*100).toFixed(1)}%`);}
+  }else{
+    flags.push('📋');
+  }
+
+  // ROIC check: current ROIC must be positive AND not below 3%
+  const roics=getROICs(d);
+  if(roics.length>=2){
+    if(roics[0]<0.03){failures++;reasons.push(`ROIC ${(roics[0]*100).toFixed(1)}%`);}
+  }
+
+  // Debt check: net debt / FCF — only check if both exist
+  const netDebt=getNetDebt(d);
+  const fcfs=getFcfAbs(d);
+  let debtFcf=null;
+  if(netDebt!==null&&fcfs.length>=3){
+    const avgFcf=avg(fcfs.slice(0,3));
+    if(avgFcf!==null&&avgFcf>0){
+      debtFcf=netDebt/avgFcf;
+      if(debtFcf>8){failures++;reasons.push(`Debt/FCF ${debtFcf.toFixed(1)}x`);}
+    }else if(avgFcf!==null&&avgFcf<=0){
+      failures++;reasons.push('FCF avg negative');
     }
   }
 
-  // ROIC deterioration
-  const roics=[];
-  for(let i=0;i<4;i++){const r=gv(d.metrics,'returnOnInvestedCapital',i);if(r!==null)roics.push(r);}
-  if(roics.length>=3){
-    const nd2=roics[0]<roics[roics.length-1];
-    let yd=0;for(let i=0;i<roics.length-1;i++)if(roics[i]<roics[i+1])yd++;
-    if(nd2&&yd>=2&&roics[0]<0.05){failures++;reasons.push(`ROIC deteriorating (${(roics[0]*100).toFixed(1)}%)`);}
-  }
-
-  // Debt/FCF
-  const fcfArr=getFCFArr(d,shares).slice(0,3);
-  const debtArr=[];for(let i=0;i<3;i++){const dd=getNetDebt(d,i);if(dd!==null)debtArr.push(dd);}
-  if(fcfArr.length<3)flags.push('📋');
-  const avgFCF=avg(fcfArr),avgDebt=avg(debtArr);
-  const ratio=avgFCF&&avgFCF>0&&avgDebt!==null?avgDebt/avgFCF:null;
-  if(ratio!==null&&ratio>6){failures++;reasons.push(`Debt/FCF ${ratio.toFixed(1)}x`);}
-
-  if(failures>=2)return{pass:false,reason:reasons.join(' | '),flags,debtFCF:ratio};
+  if(failures>=2)return{pass:false,reason:reasons.join(' | '),flags,debtFcf,revCagr};
   if(failures===1)flags.push('🟡');
-  return{pass:true,flags,debtFCF:ratio};
+  return{pass:true,flags,debtFcf,revCagr};
 }
 
+// === Stage 2: Score Bucket A (Quality + reasonable price) ===
 function scoreA(d,sec,peers){
   let score=0;
-  const roics=[];for(let i=0;i<4;i++){const r=gv(d.metrics,'returnOnInvestedCapital',i);if(r!==null)roics.push(r);}
-  const roic=roics[0]??null;let roicScore=0,roicTrend='→';
-  if(roic!==null&&peers.roics.length>0){
+  const breakdown={};
+
+  // ROIC vs sector peers (30 points)
+  const roics=getROICs(d);
+  const roic=roics[0]??null;
+  let roicScore=0,roicTrend='→';
+  if(roic!==null&&peers.roics.length>=4){
     const sorted=[...peers.roics].sort((a,b)=>a-b);
     const pct=sorted.filter(r=>r<=roic).length/sorted.length;
     roicScore=pct>=0.75?30:pct>=0.5?20:pct>=0.25?10:3;
-    if(roics.length>=3){const t=(roics[0]-roics[1])+(roics[1]-(roics[2]||roics[1]));if(t>0.015){roicScore=Math.min(30,roicScore*1.2);roicTrend='↑';}else if(t<-0.015){roicScore=roicScore*0.8;roicTrend='↓';}}
+    if(roics.length>=3){
+      if(roics[0]>roics[1]&&roics[1]>=roics[2]){roicTrend='↑';roicScore=Math.min(30,roicScore+3);}
+      else if(roics[0]<roics[1]&&roics[1]<=roics[2]){roicTrend='↓';roicScore=Math.max(0,roicScore-3);}
+    }
   }
   score+=roicScore;
-  const fcfY=gv(d.metrics,'freeCashFlowYield',0);
-  score+=fcfY>0.08?35:fcfY>0.05?27:fcfY>0.03?17:fcfY>0?8:0;
-  const evEbit=gv(d.ratios,'enterpriseValueMultiple',0);
-  if(evEbit!==null&&evEbit>0&&peers.evebits.length>0){
+  breakdown.roic=roic;
+  breakdown.roicTrend=roicTrend;
+
+  // FCF Yield (35 points)
+  const fcfYs=getFcfYields(d);
+  const fcfY=fcfYs[0]??null;
+  if(fcfY!==null){
+    if(fcfY>0.08)score+=35;
+    else if(fcfY>0.05)score+=27;
+    else if(fcfY>0.03)score+=17;
+    else if(fcfY>0)score+=8;
+  }
+  breakdown.fcfYield=fcfY;
+
+  // EV/EBIT vs sector peers (25 points)
+  const evEbits=getEvEbits(d);
+  const evEbit=evEbits[0]??null;
+  if(evEbit!==null&&peers.evebits.length>=4){
     const sorted=[...peers.evebits].sort((a,b)=>a-b);
     const pct=sorted.filter(r=>r<=evEbit).length/sorted.length;
-    score+=pct<=0.25?25:pct<=0.5?18:pct<=0.75?10:3;
+    if(pct<=0.25)score+=25;
+    else if(pct<=0.5)score+=18;
+    else if(pct<=0.75)score+=10;
+    else score+=3;
   }
-  const revs=getRevenues(d);let revCagr=null;
-  if(revs.length>=2){revCagr=Math.pow(revs[0]/revs[revs.length-1],1/(revs.length-1))-1;score+=revCagr>0.15?10:revCagr>0.08?7:revCagr>0.03?4:revCagr>0?1:0;}
-  return{score:Math.round(score),roic,roicTrend,fcfYield:fcfY,evEbit,revCagr};
+  breakdown.evEbit=evEbit;
+
+  // Rev CAGR (10 points)
+  const revs=getRevenues(d);
+  let revCagr=null;
+  if(revs.length>=3){
+    revCagr=Math.pow(revs[0]/revs[revs.length-1],1/(revs.length-1))-1;
+    if(revCagr>0.15)score+=10;
+    else if(revCagr>0.08)score+=7;
+    else if(revCagr>0.03)score+=4;
+    else if(revCagr>0)score+=1;
+  }
+  breakdown.revCagr=revCagr;
+
+  return{score:Math.round(score),...breakdown};
 }
 
-function scoreB(d,sec,peers,shares){
-  let score=0;const xf=[];
-  const fcfYs=[];for(let i=0;i<5;i++){const f=gv(d.metrics,'freeCashFlowYield',i);if(f!==null)fcfYs.push(f);}
-  const curFCF=fcfYs[0]??null,histFCF=avg(fcfYs.slice(1));
-  let fcfScore=0;
-  if(curFCF!==null&&histFCF!==null){const r=curFCF/histFCF;fcfScore=r>1.3?35:r>1.1?25:r>0.9?12:r>0.7?5:0;}
-  else if(curFCF!==null&&curFCF>0.06)fcfScore=20;
-  score+=fcfScore;
-  const margins=[];
-  for(let i=0;i<Math.min(8,d.incomeQ.length);i++){const m=d.incomeQ[i]?.grossProfitRatio;if(m!=null&&!isNaN(m))margins.push(Number(m));}
-  let marginTrend='unknown',ms=0;
+// === Stage 2b: Score Bucket B (Turnarounds with recovery signature) ===
+// Requires AT LEAST ONE specific recovery signal to score above 0
+function scoreB(d,sec,peers){
+  let score=0;
+  const flags=[];
+  const breakdown={};
+
+  // Signal 1: FCF inflecting upward (35 points)
+  // Current FCF yield must exceed historical average meaningfully
+  const fcfYs=getFcfYields(d);
+  let fcfSignal=false;
+  if(fcfYs.length>=3){
+    const cur=fcfYs[0];
+    const hist=avg(fcfYs.slice(1));
+    if(hist!==null&&cur>0){
+      const ratio=cur/hist;
+      if(ratio>1.4){score+=35;fcfSignal=true;flags.push('🔁');}
+      else if(ratio>1.15){score+=22;fcfSignal=true;flags.push('🔁');}
+      else if(ratio>0.9&&cur>0.06){score+=10;}
+    }
+  }
+  breakdown.fcfYield=fcfYs[0]??null;
+
+  // Signal 2: Margins recovering (28 points)
+  // Need: most recent margins > 1yr ago AND current margins below 3yr-back margins (i.e. recovering from compression)
+  const margins=getMargins(d);
+  let marginSignal=false;
+  let marginTrend='—';
   if(margins.length>=4){
-    const hist=avg(margins.slice(4))||avg(margins.slice(2));
-    const r2=(margins[0]+margins[1])/2,p2=(margins[2]+margins[3])/2;
-    const comp=hist!==null&&r2<hist*0.97,stab=r2>=p2*0.99,accel=margins.length>=3&&(margins[1]-margins[0])>(margins[2]-margins[1])+0.005;
-    if(comp&&stab&&!accel){ms=28;marginTrend='stabilized';}
-    else if(!stab&&accel){marginTrend='accel↓';xf.push('📉');}
-    else if(!stab){marginTrend='declining';xf.push('📉');}
-    else{marginTrend='stable';ms=8;}
+    const cur=margins[0];
+    const yr1=margins[1];
+    const yr3=margins.length>=4?margins[3]:margins[margins.length-1];
+    if(cur>yr1*1.005&&cur<yr3*0.99){
+      score+=28;marginSignal=true;flags.push('💪');marginTrend='recovering';
+    }else if(cur>yr1&&cur>=yr3){
+      score+=10;marginTrend='strong';
+    }else if(cur<yr1*0.98){
+      marginTrend='declining';
+    }else{
+      marginTrend='stable';
+    }
   }
-  score+=ms;
-  const evEbit=gv(d.ratios,'enterpriseValueMultiple',0);
-  let su=0,underPct=null;
-  if(evEbit!==null&&evEbit>0&&peers.evebits.length>0){
-    const sorted=[...peers.evebits].sort((a,b)=>a-b),med=sorted[Math.floor(sorted.length/2)];
-    if(med>0){underPct=(med-evEbit)/med;const deq=gv(d.ratios,'debtEquityRatio',0),abd=deq!==null&&peers.debtEqs.length>0&&deq>avg(peers.debtEqs);if(underPct>0.35)su=abd?12:22;else if(underPct>0.20)su=12;else if(underPct>0.10)su=5;}
+  breakdown.marginTrend=marginTrend;
+
+  // Signal 3: EV/EBIT compressed vs own history (22 points)
+  const evEbits=getEvEbits(d);
+  let valSignal=false;
+  if(evEbits.length>=3){
+    const cur=evEbits[0];
+    const hist=avg(evEbits.slice(1));
+    if(hist!==null&&cur>0&&cur<hist*0.7){
+      score+=22;valSignal=true;flags.push('🔻');
+    }else if(hist!==null&&cur<hist*0.85){
+      score+=12;
+    }
   }
-  score+=su;
-  const evHist=[];for(let i=0;i<4;i++){const e=gv(d.ratios,'enterpriseValueMultiple',i);if(e!==null&&e>0)evHist.push(e);}
-  const ev3=avg(evHist.slice(1,4));let ehs=0,evVsHist=null;
-  if(evEbit!==null&&ev3!==null&&ev3>0){evVsHist=(ev3-evEbit)/ev3;ehs=evVsHist>0.30?15:evVsHist>0.15?10:evVsHist>0.05?5:0;if(isCyc(sec)&&evEbit>ev3*1.5)xf.push('🔔');}
-  score+=ehs;
-  const fcfArr=getFCFArr(d,shares);
-  const fcfPos=fcfArr.filter(f=>f>0).length;
-  const avgFCF3=avg(fcfArr.slice(0,3));
-  const debtArr=[];for(let i=0;i<3;i++){const dd=getNetDebt(d,i);if(dd!==null)debtArr.push(dd);}
-  const avgDebt=avg(debtArr);
-  const dfcf5=avgFCF3&&avgFCF3>0&&avgDebt!==null?avgDebt/avgFCF3:null;
-  const bGates=[];
-  if(fcfPos<3)bGates.push('FCF not positive 3/5 years');
-  if(dfcf5!==null&&dfcf5>5)bGates.push(`Debt/FCF ${dfcf5.toFixed(1)}x > 5x`);
-  return{score:Math.round(score),fcfYield:curFCF,marginTrend,evEbit,evVsHist,underPct,extraFlags:xf,bGates,debtFCF:dfcf5};
+  breakdown.evEbit=evEbits[0]??null;
+
+  // Signal 4: Cheap vs sector (15 points) — additive bonus
+  if(evEbits[0]!==null&&peers.evebits.length>=4){
+    const sorted=[...peers.evebits].sort((a,b)=>a-b);
+    const pct=sorted.filter(r=>r<=evEbits[0]).length/sorted.length;
+    if(pct<=0.30)score+=15;
+    else if(pct<=0.50)score+=8;
+  }
+
+  // Rev growth as breakdown only (not scored)
+  const revs=getRevenues(d);
+  if(revs.length>=3)breakdown.revCagr=Math.pow(revs[0]/revs[revs.length-1],1/(revs.length-1))-1;
+  else breakdown.revCagr=null;
+
+  // Hard requirement: at least ONE of the three primary signals must trigger
+  const eligible=fcfSignal||marginSignal||valSignal;
+
+  return{score:Math.round(score),flags,eligible,...breakdown};
 }
 
+// === Stage 3: Bucket assignment ===
 function processCompany(ticker,exchange,d){
   const p0=Array.isArray(d.profile)?d.profile[0]:d.profile;
   if(!p0)return null;
   const sec=getSector(d.profile);
   const mktCap=getMktCap(p0);
-  const shares=Number(p0?.sharesOutstanding||p0?.outstandingShares||0)||1e9;
-  const floatPct=getFloatPct(p0);
-  const peg=gv(d.ratios,'priceEarningsToGrowthRatio',0)||gv(d.ratios,'pegRatio',0);
-  const deq=gv(d.ratios,'debtEquityRatio',0);
-  const xf=[];
-  if(exchange==='TSX'&&floatPct!==null&&floatPct<0.20)xf.push('🏳️');
-  const peers=sectorStats[sec]||{roics:[],evebits:[],debtEqs:[]};
-  const gate=runGate(d,sec,shares);
-  if(!gate.pass)return{ticker,exchange,companyName:p0.companyName||ticker,sector:sec,mktCap,floatPct,peg,bucket:'risk',reason:gate.reason,flags:[...(gate.flags||[]),...xf]};
+  const peers=sectorStats[sec]||{roics:[],evebits:[]};
+
+  // Run gate
+  const gate=runGate(d,sec);
+
+  if(!gate.pass){
+    return{
+      ticker,exchange,companyName:p0.companyName||ticker,sector:sec,mktCap,
+      bucket:'risk',reason:gate.reason,flags:gate.flags||[]
+    };
+  }
+
+  // Score both buckets
   const aRes=scoreA(d,sec,peers);
-  const bRes=scoreB(d,sec,peers,shares);
-  const canBeB=bRes.bGates.length===0;
-  const sr=[...peers.roics].sort((a,b)=>a-b),q75=sr[Math.floor(sr.length*0.75)]??0;
-  const roicTopQ=aRes.roic!==null&&peers.roics.length>0&&aRes.roic>=q75;
-  let bucket,score,bd;
-  if(roicTopQ){bucket='qos';score=aRes.score;bd=aRes;}
-  else if(!canBeB||aRes.score>=bRes.score){bucket='a';score=aRes.score;bd=aRes;}
-  else{bucket='b';score=bRes.score;bd=bRes;}
-  if(!bd.debtFCF&&gate.debtFCF)bd={...bd,debtFCF:gate.debtFCF};
-  return{ticker,exchange,companyName:p0.companyName||ticker,sector:sec,mktCap,floatPct,peg,deq,bucket,score,bd,flags:[...(gate.flags||[]),...(bd.extraFlags||[]),...xf]};
+  const bRes=scoreB(d,sec,peers);
+
+  // Bucket assignment logic:
+  // 1. Top-quartile ROIC → QoS (Quality on Sale subset of A)
+  // 2. If B has triggered AT LEAST ONE signal AND B score is competitive (>=40) → B
+  // 3. Otherwise → A
+  let bucket='a',score=aRes.score,bd=aRes;
+
+  // Check if top-quartile ROIC for QoS
+  let isQoS=false;
+  if(aRes.roic!==null&&peers.roics.length>=8){
+    const sorted=[...peers.roics].sort((a,b)=>a-b);
+    const q75=sorted[Math.floor(sorted.length*0.75)];
+    if(aRes.roic>=q75&&aRes.score>=55)isQoS=true;
+  }
+
+  if(bRes.eligible&&bRes.score>=40){
+    bucket='b';score=bRes.score;bd=bRes;
+  }else if(isQoS){
+    bucket='qos';
+  }
+
+  // Merge gate-derived flags + debt/FCF
+  const allFlags=[...(gate.flags||[]),...(bd.flags||[])];
+
+  return{
+    ticker,exchange,companyName:p0.companyName||ticker,sector:sec,mktCap,
+    bucket,score,bd:{...bd,debtFcf:gate.debtFcf,revCagr:bd.revCagr??gate.revCagr},
+    flags:allFlags
+  };
 }
 
-function fP(v){if(v===null||v===undefined||isNaN(v))return'<span class="cn">N/A</span>';return`<span class="${v>0.1?'cg':v>0?'co':'cb'}">${(v*100).toFixed(1)}%</span>`;}
-function fX(v,inv=false){if(v===null||v===undefined||isNaN(v))return'<span class="cn">N/A</span>';const c=inv?(v<10?'cg':v<20?'co':'cb'):(v<5?'cg':v<8?'co':'cb');return`<span class="${c}">${Number(v).toFixed(1)}x</span>`;}
-function fM(v){if(!v||v<=0)return'<span class="cn">N/A</span>';if(v>1e12)return`$${(v/1e12).toFixed(1)}T`;if(v>1e9)return`$${(v/1e9).toFixed(1)}B`;return`$${(v/1e6).toFixed(0)}M`;}
-function fF(v){if(v===null||v===undefined)return'<span class="cn">N/A</span>';return`<span class="${v>0.5?'cg':v>0.2?'co':'cb'}">${(v*100).toFixed(0)}%</span>`;}
+// === Sector stats ===
+function buildSectorStats(raw){
+  sectorStats={};
+  raw.forEach(({d})=>{
+    if(!d)return;
+    const sec=getSector(d.profile);
+    if(!sectorStats[sec])sectorStats[sec]={roics:[],evebits:[]};
+    const roics=getROICs(d);
+    const evebits=getEvEbits(d);
+    if(roics[0]!=null)sectorStats[sec].roics.push(roics[0]);
+    if(evebits[0]!=null)sectorStats[sec].evebits.push(evebits[0]);
+  });
+}
+
+function scoreAndRender(raw){
+  allResults=[];structural=[];
+  raw.forEach(({ticker,exchange,d})=>{
+    try{
+      const res=processCompany(ticker,exchange,d);
+      if(!res)return;
+      if(res.bucket==='risk')structural.push(res);
+      else allResults.push(res);
+    }catch(e){console.error(ticker,e);}
+  });
+  allResults.sort((a,b)=>b.score-a.score);
+  renderAll();
+}
+
+// === Formatting ===
+function fP(v){if(v==null||isNaN(v))return'<span class="cn">—</span>';return`<span class="${v>0.1?'cg':v>0?'co':'cb'}">${(v*100).toFixed(1)}%</span>`;}
+function fX(v,inv=false){if(v==null||isNaN(v))return'<span class="cn">—</span>';const c=inv?(v<10?'cg':v<20?'co':'cb'):(v>0?'co':'cb');return`<span class="${c}">${Number(v).toFixed(1)}x</span>`;}
+function fM(v){if(!v||v<=0)return'<span class="cn">—</span>';if(v>1e12)return`$${(v/1e12).toFixed(1)}T`;if(v>1e9)return`$${(v/1e9).toFixed(1)}B`;return`$${(v/1e6).toFixed(0)}M`;}
 function sc(s){return s>=60?'sh':s>=35?'sm':'sl';}
 function fc(s){return s>=60?'fh':s>=35?'fm':'fl';}
 
@@ -462,27 +516,26 @@ function renderTable(rows,tid,ss){
     <th ${sk('fcf',tid)} class="${ss.col==='fcf'?'sorted':''}">FCF Yld${ar('fcf')}</th>
     <th ${sk('evebit',tid)} class="${ss.col==='evebit'?'sorted':''}">EV/EBIT${ar('evebit')}</th>
     <th ${sk('rev',tid)} class="${ss.col==='rev'?'sorted':''}">Rev CAGR${ar('rev')}</th>
-    <th>Debt/FCF</th><th>PEG*</th><th>Flags</th>
+    <th>Debt/FCF</th><th>Flags</th>
   </tr></thead><tbody>`;
   sorted.forEach((c,i)=>{
     const s=c.score,bd=c.bd||{};
-    const floatFlag=c.floatPct!==null&&c.floatPct<0.2?` 🏳️`:'';
+    const tcls=c.bucket==='qos'?'ticker-qos':(c.bucket==='b'?'ticker-b':'');
     h+=`<tr>
       <td class="rank-n">${i+1}</td>
       <td><div class="sc-wrap"><span class="sc-val ${sc(s)}">${s}</span><div class="sc-bar"><div class="sc-fill ${fc(s)}" style="width:${Math.min(100,s)}%"></div></div></div></td>
-      <td class="ticker-c ${c.bucket==='qos'?'ticker-qos':''}">${c.ticker.replace('.TO','')}</td>
+      <td class="ticker-c ${tcls}">${c.ticker.replace('.TO','')}</td>
       <td class="name-c" title="${c.companyName}">${c.companyName}</td>
       <td><span class="badge ${c.exchange==='TSX'?'badge-tsx':''}">${c.exchange}</span></td>
       <td style="font-size:10px;color:var(--muted2);max-width:110px;overflow:hidden;text-overflow:ellipsis">${c.sector||'—'}</td>
       <td class="metric">${fM(c.mktCap)}</td>
-      <td class="metric">${bd.roic!=null?fP(bd.roic):'<span class="cn">N/A</span>'}</td>
+      <td class="metric">${bd.roic!=null?fP(bd.roic):'<span class="cn">—</span>'}</td>
       <td class="metric" style="font-size:13px">${bd.roicTrend||bd.marginTrend||'—'}</td>
-      <td class="metric">${bd.fcfYield!=null?fP(bd.fcfYield):'<span class="cn">N/A</span>'}</td>
-      <td class="metric">${bd.evEbit!=null?fX(bd.evEbit,true):'<span class="cn">N/A</span>'}</td>
-      <td class="metric">${bd.revCagr!=null?fP(bd.revCagr):'<span class="cn">N/A</span>'}</td>
-      <td class="metric">${bd.debtFCF!=null?fX(bd.debtFCF):'<span class="cn">N/A</span>'}</td>
-      <td class="metric cn">${c.peg!=null?Number(c.peg).toFixed(2):'N/A'}</td>
-      <td class="flags">${(c.flags||[]).join('')}${floatFlag}</td>
+      <td class="metric">${bd.fcfYield!=null?fP(bd.fcfYield):'<span class="cn">—</span>'}</td>
+      <td class="metric">${bd.evEbit!=null?fX(bd.evEbit,true):'<span class="cn">—</span>'}</td>
+      <td class="metric">${bd.revCagr!=null?fP(bd.revCagr):'<span class="cn">—</span>'}</td>
+      <td class="metric">${bd.debtFcf!=null?fX(bd.debtFcf):'<span class="cn">—</span>'}</td>
+      <td class="flags">${(c.flags||[]).join('')}</td>
     </tr>`;
   });
   return h+'</tbody></table></div>';
@@ -494,29 +547,24 @@ function renderAll(){
   const bkA=active.filter(r=>r.bucket==='a').sort((a,b)=>b.score-a.score);
   const bkB=active.filter(r=>r.bucket==='b').sort((a,b)=>b.score-a.score);
   const risks=filtered(structural);
-  const sc2={};allResults.forEach(c=>{if(!sc2[c.sector])sc2[c.sector]={total:0,under:0};sc2[c.sector].total++;if(c.bucket==='b'&&c.bd?.underPct>0.20)sc2[c.sector].under++;});
-  const dist=Object.entries(sc2).filter(([s,dd])=>dd.total>=3&&dd.under/dd.total>=0.6).map(([s])=>s);
+
   let html='';
-  if(dist.length)html+=`<div class="distress-banner">⚠️ Sector-Wide Distress: ${dist.join(', ')} — 60%+ underperforming. Human judgment required.</div>`;
-  html+=`<div class="section-hd"><span class="section-title t-qos">⭐ Quality on Sale</span><span class="section-count">${qos.length} companies</span><span class="section-desc">Top-quartile ROIC + mispricing.</span></div>`;
-  html+=qos.length?renderTable(qos,'qos',sortStates.qos):`<div class="empty"><div class="ico">⭐</div><p>No Quality on Sale names.</p></div>`;
-  html+=`<div class="section-hd"><span class="section-title t-a">Bucket A — Quality Compounders</span><span class="section-count">${bkA.length} companies</span><span class="section-desc">High quality, reasonably priced.</span></div>`;
-  html+=bkA.length?renderTable(bkA,'a',sortStates.a):`<div class="empty"><div class="ico">A</div><p>No Bucket A names.</p></div>`;
-  html+=`<div class="section-hd"><span class="section-title t-b">Bucket B — Turnarounds</span><span class="section-count">${bkB.length} companies</span><span class="section-desc">Pain priced in, floor forming.</span></div>`;
-  html+=bkB.length?renderTable(bkB,'b',sortStates.b):`<div class="empty"><div class="ico">B</div><p>No Bucket B names.</p></div>`;
+  html+=`<div class="section-hd"><span class="section-title t-qos">⭐ Quality on Sale</span><span class="section-count">${qos.length}</span><span class="section-desc">Top-quartile ROIC, scored ≥55.</span></div>`;
+  html+=qos.length?renderTable(qos,'qos',sortStates.qos):`<div class="empty"><div class="ico">⭐</div><p>No QoS names.</p></div>`;
+
+  html+=`<div class="section-hd"><span class="section-title t-a">Bucket A — Quality Compounders</span><span class="section-count">${bkA.length}</span><span class="section-desc">Decent quality at reasonable price.</span></div>`;
+  html+=bkA.length?renderTable(bkA,'a',sortStates.a):`<div class="empty"><div class="ico">A</div><p>No A names.</p></div>`;
+
+  html+=`<div class="section-hd"><span class="section-title t-b">Bucket B — Turnarounds</span><span class="section-count">${bkB.length}</span><span class="section-desc">FCF inflecting / margins recovering / valuation compressed.</span></div>`;
+  html+=bkB.length?renderTable(bkB,'b',sortStates.b):`<div class="empty"><div class="ico">B</div><p>No turnaround signatures detected.</p></div>`;
+
   if(risks.length){
-    html+=`<div class="section-hd"><span class="section-title t-risk">⚠️ Structural Risk — Excluded</span><span class="section-count">${risks.length} companies</span></div>`;
-    html+=`<div class="tbl-wrap"><table><thead><tr><th>Ticker</th><th>Company</th><th>Idx</th><th>Sector</th><th>Mkt Cap</th><th>Reason</th><th>Flags</th></tr></thead><tbody>`;
-    risks.forEach(c=>{html+=`<tr><td class="ticker-c cb">${c.ticker.replace('.TO','')}</td><td class="name-c" title="${c.companyName}">${c.companyName}</td><td><span class="badge ${c.exchange==='TSX'?'badge-tsx':''}">${c.exchange}</span></td><td style="font-size:10px;color:var(--muted2)">${c.sector||'—'}</td><td class="metric">${fM(c.mktCap)}</td><td style="font-family:'DM Mono',monospace;font-size:9px;color:var(--red);white-space:normal;max-width:220px">${c.reason||'—'}</td><td class="flags">${(c.flags||[]).join('')}</td></tr>`;});
+    html+=`<div class="section-hd"><span class="section-title t-risk">⚠️ Structural Risk — Excluded</span><span class="section-count">${risks.length}</span></div>`;
+    html+=`<div class="tbl-wrap"><table><thead><tr><th>Ticker</th><th>Company</th><th>Idx</th><th>Sector</th><th>Mkt Cap</th><th>Reason</th></tr></thead><tbody>`;
+    risks.forEach(c=>{html+=`<tr><td class="ticker-c cb">${c.ticker.replace('.TO','')}</td><td class="name-c" title="${c.companyName}">${c.companyName}</td><td><span class="badge ${c.exchange==='TSX'?'badge-tsx':''}">${c.exchange}</span></td><td style="font-size:10px;color:var(--muted2)">${c.sector||'—'}</td><td class="metric">${fM(c.mktCap)}</td><td style="font-family:'DM Mono',monospace;font-size:9px;color:var(--red);white-space:normal;max-width:240px">${c.reason||'—'}</td></tr>`;});
     html+='</tbody></table></div>';
   }
   document.getElementById('output').innerHTML=html;
-}
-
-function updateCov(){
-  document.getElementById('covGot').textContent=covGot;
-  document.getElementById('covSkip').textContent=covSkip;
-  document.getElementById('covRetry').textContent=covRetry;
 }
 
 function filtered(arr){
@@ -543,46 +591,18 @@ function setStatus(msg,active=false){
   document.getElementById('statusBar').innerHTML=active?`<div class="pulse"></div>${msg}`:msg;
 }
 
-function buildSectorStats(raw){
-  sectorStats={};
-  raw.forEach(({d})=>{
-    if(!d)return;
-    const p=Array.isArray(d.profile)?d.profile[0]:d.profile;if(!p)return;
-    const sec=getSector(d.profile);
-    if(!sectorStats[sec])sectorStats[sec]={roics:[],evebits:[],debtEqs:[]};
-    const r=d.metrics?.[0]?.returnOnInvestedCapital;
-    const e=d.ratios?.[0]?.enterpriseValueMultiple;
-    const dq=d.ratios?.[0]?.debtEquityRatio;
-    if(r!=null&&!isNaN(r))sectorStats[sec].roics.push(Number(r));
-    if(e!=null&&!isNaN(e)&&Number(e)>0)sectorStats[sec].evebits.push(Number(e));
-    if(dq!=null&&!isNaN(dq))sectorStats[sec].debtEqs.push(Number(dq));
-  });
-}
-
-function scoreAndRender(raw){
-  allResults=[];structural=[];
-  raw.forEach(({ticker,exchange,d})=>{
-    try{const res=processCompany(ticker,exchange,d);if(!res)return;if(res.bucket==='risk')structural.push(res);else allResults.push(res);}catch(e){}
-  });
-  allResults.sort((a,b)=>b.score-a.score);
-  renderAll();
-}
-
 async function runScreen(){
   const btn=document.getElementById('runBtn');
   btn.disabled=true;
   allResults=[];structural=[];sectorStats={};
-  covGot=0;covSkip=0;covRetry=0;
-
+  covGot=0;covSkip=0;
   const tasks=[
     ...[...new Set(SP_TICKERS)].map(t=>({ticker:t,exchange:'SP'})),
     ...[...new Set(TSX_TICKERS)].map(t=>({ticker:t,exchange:'TSX'}))
   ];
   const total=tasks.length;let done=0;
-  document.getElementById('coverageWrap').style.display='block';
-  document.getElementById('covTotal').textContent=total;
   document.getElementById('progWrap').style.display='block';
-  setStatus(`Starting v2.4 — ${total} companies.`,true);
+  setStatus(`Starting v3.0 — ${total} companies, 3 endpoints each.`,true);
 
   const raw=[];
   for(let i=0;i<tasks.length;i+=BATCH_SIZE){
@@ -595,20 +615,18 @@ async function runScreen(){
     results.forEach(({ticker,exchange,d})=>{if(d)raw.push({ticker,exchange,d});done++;});
     const pct=Math.round(done/total*100);
     document.getElementById('progFill').style.width=pct+'%';
-    updateCov();
-    setStatus(`Fetching... ${done}/${total} (${pct}%) — Got: ${covGot} Skip: ${covSkip} Retry: ${covRetry}`,true);
+    setStatus(`Fetching... ${done}/${total} (${pct}%) — Got: ${covGot} Skip: ${covSkip}`,true);
     if(done%50===0&&raw.length>10){buildSectorStats(raw);scoreAndRender(raw);}
     if(i+BATCH_SIZE<tasks.length)await sleep(BATCH_DELAY);
   }
 
   buildSectorStats(raw);scoreAndRender(raw);
-  allResults.sort((a,b)=>b.score-a.score);
   const qN=allResults.filter(r=>r.bucket==='qos').length;
   const aN=allResults.filter(r=>r.bucket==='a').length;
   const bN=allResults.filter(r=>r.bucket==='b').length;
   renderAll();
   document.getElementById('progFill').style.width='100%';
-  setStatus(`✓ Complete — ${covGot}/${total} returned data · ${allResults.length} ranked (⭐${qN} · A:${aN} · B:${bN}) · ${structural.length} excluded · ${covSkip} no data`);
+  setStatus(`✓ Complete — ${covGot}/${total} got data · ${allResults.length} ranked (⭐${qN} · A:${aN} · B:${bN}) · ${structural.length} excluded`);
   btn.disabled=false;
 }
 </script>
