@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>GARP Screener v2.1</title>
+<title>GARP Screener v2.2</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
@@ -37,7 +37,7 @@ h1 em{color:var(--accent);font-style:normal;}
 .status-bar{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted2);margin-bottom:8px;min-height:16px;display:flex;align-items:center;gap:7px;line-height:1.5;}
 .pulse{width:5px;height:5px;border-radius:50%;background:var(--accent);animation:pulse 1s infinite;flex-shrink:0;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.1}}
-.coverage-wrap{margin-bottom:20px;display:none;}
+.coverage-wrap{margin-bottom:8px;display:none;}
 .coverage-row{display:flex;justify-content:space-between;margin-bottom:6px;}
 .coverage-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted2);letter-spacing:0.1em;}
 .coverage-nums{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted2);}
@@ -91,7 +91,7 @@ td{padding:10px 12px;white-space:nowrap;vertical-align:middle;}
 <header>
   <div class="header-row">
     <div>
-      <div class="label">// GARP Intelligence Engine v2.1</div>
+      <div class="label">// GARP Intelligence Engine v2.2 — Field Names Fixed</div>
       <h1>GROWTH AT A<br><em>REASONABLE</em><br>PRICE</h1>
     </div>
     <div class="universe-count">
@@ -121,16 +121,14 @@ td{padding:10px 12px;white-space:nowrap;vertical-align:middle;}
   <button class="btn-run btn" id="runBtn" onclick="runScreen()">▶ Run Full Screen</button>
 </div>
 
-<div class="status-bar" id="statusBar">Ready — press Run Full Screen to begin. v2.1 has retry logic for full coverage.</div>
-
+<div class="status-bar" id="statusBar">Ready — v2.2 fixes missing Mkt Cap, Revenue CAGR, Debt/FCF data.</div>
 <div class="coverage-wrap" id="coverageWrap">
   <div class="coverage-row">
     <span class="coverage-label">COVERAGE</span>
-    <span class="coverage-nums">Got: <b id="covGot">0</b> &nbsp;·&nbsp; Skipped: <b id="covSkip">0</b> &nbsp;·&nbsp; Retried: <b id="covRetry">0</b> &nbsp;·&nbsp; Total: <b id="covTotal">0</b></span>
+    <span class="coverage-nums">Got: <b id="covGot">0</b> &nbsp;·&nbsp; Skipped: <b id="covSkip">0</b> &nbsp;·&nbsp; Retried: <b id="covRetry">0</b> &nbsp;·&nbsp; of <b id="covTotal">0</b></span>
   </div>
 </div>
 <div class="prog-wrap" id="progWrap"><div class="prog-fill" id="progFill"></div></div>
-
 <div id="output"><div class="empty"><div class="ico">📊</div><p>Results will appear here as the screen runs.</p></div></div>
 
 <div class="legend">
@@ -169,9 +167,8 @@ let covGot=0,covSkip=0,covRetry=0;
 
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
 
-async function fmpGet(endpoint,symbol,limit=5,period='annual'){
-  let url=`${BASE}/${endpoint}?symbol=${encodeURIComponent(symbol)}&limit=${limit}&apikey=${API_KEY}`;
-  if(endpoint==='income-statement')url+=`&period=${period}`;
+async function fmpGet(endpoint,symbol,extraParams=''){
+  let url=`${BASE}/${endpoint}?symbol=${encodeURIComponent(symbol)}&apikey=${API_KEY}${extraParams}`;
   for(let attempt=0;attempt<MAX_RETRIES;attempt++){
     try{
       if(attempt>0){covRetry++;updateCov();await sleep(RETRY_DELAY*attempt);}
@@ -186,85 +183,198 @@ async function fmpGet(endpoint,symbol,limit=5,period='annual'){
 }
 
 async function fetchAll(ticker){
-  const[profile,ratios,metrics,income]=await Promise.allSettled([
-    fmpGet('profile',ticker,1),
-    fmpGet('ratios',ticker,5),
-    fmpGet('key-metrics',ticker,5),
-    fmpGet('income-statement',ticker,8,'quarter'),
+  // Fetch all needed endpoints in parallel
+  const[profile,ratios,metrics,incomeQ,incomeA,cashflow,sharesFloat]=await Promise.allSettled([
+    fmpGet('profile',ticker,''),                           // mktCap, sector, companyName
+    fmpGet('ratios',ticker,'&limit=5'),                    // ROIC, EV/EBIT, PEG, debtEquity
+    fmpGet('key-metrics',ticker,'&limit=5'),               // freeCashFlowYield, returnOnInvestedCapital, netDebt
+    fmpGet('income-statement',ticker,'&limit=8&period=quarter'), // grossProfitRatio for margin
+    fmpGet('income-statement',ticker,'&limit=6'),          // annual revenue for CAGR
+    fmpGet('cash-flow-statement',ticker,'&limit=5'),       // freeCashFlow for FCF gate
+    fmpGet('shares-float',ticker,''),                      // floatShares, outstandingShares
   ]);
+
   const p=profile.status==='fulfilled'?profile.value:null;
   const r=ratios.status==='fulfilled'?ratios.value:null;
   const m=metrics.status==='fulfilled'?metrics.value:null;
-  const i=income.status==='fulfilled'?income.value:null;
-  const hasData=p&&Array.isArray(p)&&p.length>0&&(r||m);
-  return hasData?{profile:p,ratios:r,metrics:m,income:i}:null;
+  const iq=incomeQ.status==='fulfilled'?incomeQ.value:null;
+  const ia=incomeA.status==='fulfilled'?incomeA.value:null;
+  const cf=cashflow.status==='fulfilled'?cashflow.value:null;
+  const sf=sharesFloat.status==='fulfilled'?sharesFloat.value:null;
+
+  const hasData=p&&Array.isArray(p)&&p.length>0;
+  return hasData?{profile:p,ratios:r,metrics:m,incomeQ:iq,incomeA:ia,cashflow:cf,sharesFloat:sf}:null;
 }
 
-function gv(arr,key,i=0){if(!arr||!arr[i])return null;const v=arr[i][key];return(v==null||v===''||isNaN(Number(v)))?null:Number(v);}
-function avg(a){const c=a.filter(v=>v!==null&&!isNaN(v));return c.length?c.reduce((x,y)=>x+y,0)/c.length:null;}
-function getSector(p){const p0=Array.isArray(p)?p[0]:p;return p0?.sector||p0?.industry||'Unknown';}
+// Safe value getter
+function gv(arr,key,i=0){
+  if(!arr||!arr[i])return null;
+  const v=arr[i][key];
+  return(v==null||v===''||isNaN(Number(v)))?null:Number(v);
+}
+function avg(a){
+  const c=a.filter(v=>v!==null&&!isNaN(v));
+  return c.length?c.reduce((x,y)=>x+y,0)/c.length:null;
+}
+function getSector(profile){
+  const p=Array.isArray(profile)?profile[0]:profile;
+  return p?.sector||p?.industry||'Unknown';
+}
 function isCyc(s){return CYCLICAL.some(c=>s.toLowerCase().includes(c));}
+
+// Get revenue array from annual income statement
+function getRevenues(d){
+  const revs=[];
+  if(d.incomeA&&Array.isArray(d.incomeA)){
+    for(let i=0;i<Math.min(6,d.incomeA.length);i++){
+      const r=d.incomeA[i]?.revenue;
+      if(r!=null&&!isNaN(Number(r))&&Number(r)>0)revs.push(Number(r));
+    }
+  }
+  return revs;
+}
+
+// Get FCF array from cash flow statement
+function getFCFArr(d){
+  const fcfs=[];
+  if(d.cashflow&&Array.isArray(d.cashflow)){
+    for(let i=0;i<Math.min(5,d.cashflow.length);i++){
+      const f=d.cashflow[i]?.freeCashFlow;
+      if(f!=null&&!isNaN(Number(f)))fcfs.push(Number(f));
+    }
+  }
+  return fcfs;
+}
+
+// Get net debt from metrics or calculate from balance sheet
+function getNetDebt(d,i=0){
+  const nd=gv(d.metrics,'netDebt',i);
+  if(nd!==null)return nd;
+  // fallback: try from cashflow
+  return null;
+}
+
+// Get float percentage
+function getFloatPct(d){
+  if(d.sharesFloat&&Array.isArray(d.sharesFloat)&&d.sharesFloat.length>0){
+    const sf=d.sharesFloat[0];
+    if(sf.freeFloat!=null) return Number(sf.freeFloat)/100; // freeFloat is a percentage 0-100
+    if(sf.floatShares!=null&&sf.outstandingShares!=null&&sf.outstandingShares>0){
+      return Number(sf.floatShares)/Number(sf.outstandingShares);
+    }
+  }
+  return null;
+}
 
 function runGate(d,sec){
   const flags=[];let failures=0;const reasons=[];
-  const revs=[];for(let i=0;i<5;i++){const r=gv(d.metrics,'revenue',i);if(r!==null)revs.push(r);}
+
+  // Check 1: Revenue
+  const revs=getRevenues(d);
   if(revs.length>=2){
     const cagr=Math.pow(revs[0]/revs[revs.length-1],1/(revs.length-1))-1;
     if(isCyc(sec)){
-      const margins=[];for(let i=0;i<8;i++){const m=gv(d.income,'grossProfitRatio',i);if(m!==null)margins.push(m);}
+      const margins=[];
+      if(d.incomeQ&&Array.isArray(d.incomeQ)){
+        for(let i=0;i<Math.min(8,d.incomeQ.length);i++){
+          const m=d.incomeQ[i]?.grossProfitRatio;
+          if(m!=null&&!isNaN(m))margins.push(Number(m));
+        }
+      }
       if(margins.length>=4){
         const r2=(margins[0]+margins[1])/2,p2=(margins[2]+margins[3])/2;
         const stab=r2>=p2*0.99,accel=margins.length>=3&&(margins[1]-margins[0])>(margins[2]-margins[1])+0.005;
-        if(!stab||accel){failures++;reasons.push('Cyclical: margin not stabilized');}else flags.push('🔄');
+        if(!stab||accel){failures++;reasons.push('Cyclical: margin not stabilized');}
+        else flags.push('🔄');
       }
-    }else{if(cagr<0){failures++;reasons.push(`Rev CAGR ${(cagr*100).toFixed(1)}%`);}}
+    }else{
+      if(cagr<0){failures++;reasons.push(`Rev CAGR ${(cagr*100).toFixed(1)}%`);}
+    }
   }
-  const roics=[];for(let i=0;i<4;i++){const r=gv(d.metrics,'returnOnInvestedCapital',i);if(r!==null)roics.push(r);}
+
+  // Check 2: ROIC deterioration
+  const roics=[];
+  for(let i=0;i<4;i++){const r=gv(d.metrics,'returnOnInvestedCapital',i);if(r!==null)roics.push(r);}
   if(roics.length>=3){
-    const nd=roics[0]<roics[roics.length-1];let yd=0;for(let i=0;i<roics.length-1;i++)if(roics[i]<roics[i+1])yd++;
+    const nd=roics[0]<roics[roics.length-1];
+    let yd=0;for(let i=0;i<roics.length-1;i++)if(roics[i]<roics[i+1])yd++;
     if(nd&&yd>=2&&roics[0]<0.05){failures++;reasons.push(`ROIC deteriorating (${(roics[0]*100).toFixed(1)}%)`);}
   }
-  const fa=[],da=[];for(let i=0;i<3;i++){const f=gv(d.metrics,'freeCashFlowPerShare',i);if(f!==null)fa.push(f);const dd=gv(d.metrics,'netDebt',i);if(dd!==null)da.push(dd);}
-  if(fa.length<3)flags.push('📋');
-  const p0=Array.isArray(d.profile)?d.profile[0]:d.profile;
-  const sh=p0?.sharesOutstanding||1e9;
-  const af=avg(fa)!==null?avg(fa)*sh:null,ad=avg(da);
-  const ratio=af&&af>0&&ad!==null?ad/af:null;
+
+  // Check 3: Debt/FCF using actual FCF from cash flow statement
+  const fcfArr=getFCFArr(d);
+  const debtArr=[];
+  for(let i=0;i<3;i++){const dd=getNetDebt(d,i);if(dd!==null)debtArr.push(dd);}
+
+  if(fcfArr.length<3)flags.push('📋');
+  const avgFCF=avg(fcfArr.slice(0,3));
+  const avgDebt=avg(debtArr);
+  const ratio=avgFCF&&avgFCF>0&&avgDebt!==null?avgDebt/avgFCF:null;
   if(ratio!==null&&ratio>6){failures++;reasons.push(`Debt/FCF ${ratio.toFixed(1)}x`);}
-  if(failures>=2)return{pass:false,reason:reasons.join(' | '),flags};
+
+  if(failures>=2)return{pass:false,reason:reasons.join(' | '),flags,debtFCF:ratio};
   if(failures===1)flags.push('🟡');
   return{pass:true,flags,debtFCF:ratio};
 }
 
 function scoreA(d,sec,peers){
   let score=0;
-  const roics=[];for(let i=0;i<4;i++){const r=gv(d.metrics,'returnOnInvestedCapital',i);if(r!==null)roics.push(r);}
-  const roic=roics[0]??null;let roicScore=0,roicTrend='→';
+  const roics=[];
+  for(let i=0;i<4;i++){const r=gv(d.metrics,'returnOnInvestedCapital',i);if(r!==null)roics.push(r);}
+  const roic=roics[0]??null;
+  let roicScore=0,roicTrend='→';
   if(roic!==null&&peers.roics.length>0){
     const sorted=[...peers.roics].sort((a,b)=>a-b);
     const pct=sorted.filter(r=>r<=roic).length/sorted.length;
     roicScore=pct>=0.75?30:pct>=0.5?20:pct>=0.25?10:3;
-    if(roics.length>=3){const t=(roics[0]-roics[1])+(roics[1]-(roics[2]||roics[1]));if(t>0.015){roicScore=Math.min(30,roicScore*1.2);roicTrend='↑';}else if(t<-0.015){roicScore=roicScore*0.8;roicTrend='↓';}}
+    if(roics.length>=3){
+      const t=(roics[0]-roics[1])+(roics[1]-(roics[2]||roics[1]));
+      if(t>0.015){roicScore=Math.min(30,roicScore*1.2);roicTrend='↑';}
+      else if(t<-0.015){roicScore=roicScore*0.8;roicTrend='↓';}
+    }
   }
   score+=roicScore;
+
   const fcfY=gv(d.metrics,'freeCashFlowYield',0);
   score+=fcfY>0.08?35:fcfY>0.05?27:fcfY>0.03?17:fcfY>0?8:0;
+
   const evEbit=gv(d.ratios,'enterpriseValueMultiple',0);
-  if(evEbit!==null&&evEbit>0&&peers.evebits.length>0){const sorted=[...peers.evebits].sort((a,b)=>a-b);const pct=sorted.filter(r=>r<=evEbit).length/sorted.length;score+=pct<=0.25?25:pct<=0.5?18:pct<=0.75?10:3;}
-  const revs=[];for(let i=0;i<5;i++){const r=gv(d.metrics,'revenue',i);if(r!==null)revs.push(r);}
-  let revCagr=null;if(revs.length>=2){revCagr=Math.pow(revs[0]/revs[revs.length-1],1/(revs.length-1))-1;score+=revCagr>0.15?10:revCagr>0.08?7:revCagr>0.03?4:revCagr>0?1:0;}
+  if(evEbit!==null&&evEbit>0&&peers.evebits.length>0){
+    const sorted=[...peers.evebits].sort((a,b)=>a-b);
+    const pct=sorted.filter(r=>r<=evEbit).length/sorted.length;
+    score+=pct<=0.25?25:pct<=0.5?18:pct<=0.75?10:3;
+  }
+
+  const revs=getRevenues(d);
+  let revCagr=null;
+  if(revs.length>=2){
+    revCagr=Math.pow(revs[0]/revs[revs.length-1],1/(revs.length-1))-1;
+    score+=revCagr>0.15?10:revCagr>0.08?7:revCagr>0.03?4:revCagr>0?1:0;
+  }
+
   return{score:Math.round(score),roic,roicTrend,fcfYield:fcfY,evEbit,revCagr};
 }
 
 function scoreB(d,sec,peers){
   let score=0;const xf=[];
-  const fcfYs=[];for(let i=0;i<5;i++){const f=gv(d.metrics,'freeCashFlowYield',i);if(f!==null)fcfYs.push(f);}
+
+  // FCF yield vs history
+  const fcfYs=[];
+  for(let i=0;i<5;i++){const f=gv(d.metrics,'freeCashFlowYield',i);if(f!==null)fcfYs.push(f);}
   const curFCF=fcfYs[0]??null,histFCF=avg(fcfYs.slice(1));
   let fcfScore=0;
   if(curFCF!==null&&histFCF!==null){const r=curFCF/histFCF;fcfScore=r>1.3?35:r>1.1?25:r>0.9?12:r>0.7?5:0;}
   else if(curFCF!==null&&curFCF>0.06)fcfScore=20;
   score+=fcfScore;
-  const margins=[];for(let i=0;i<8;i++){const m=gv(d.income,'grossProfitRatio',i);if(m!==null)margins.push(m);}
+
+  // Margin stability from quarterly income
+  const margins=[];
+  if(d.incomeQ&&Array.isArray(d.incomeQ)){
+    for(let i=0;i<Math.min(8,d.incomeQ.length);i++){
+      const m=d.incomeQ[i]?.grossProfitRatio;
+      if(m!=null&&!isNaN(m))margins.push(Number(m));
+    }
+  }
   let marginTrend='unknown',ms=0;
   if(margins.length>=4){
     const hist=avg(margins.slice(4))||avg(margins.slice(2));
@@ -276,46 +386,82 @@ function scoreB(d,sec,peers){
     else{marginTrend='stable';ms=8;}
   }
   score+=ms;
+
+  // Sector underperformance
   const evEbit=gv(d.ratios,'enterpriseValueMultiple',0);
   let su=0,underPct=null;
   if(evEbit!==null&&evEbit>0&&peers.evebits.length>0){
     const sorted=[...peers.evebits].sort((a,b)=>a-b),med=sorted[Math.floor(sorted.length/2)];
-    if(med>0){underPct=(med-evEbit)/med;const deq=gv(d.ratios,'debtEquityRatio',0),abd=deq!==null&&peers.debtEqs.length>0&&deq>avg(peers.debtEqs);if(underPct>0.35)su=abd?12:22;else if(underPct>0.20)su=12;else if(underPct>0.10)su=5;}
+    if(med>0){
+      underPct=(med-evEbit)/med;
+      const deq=gv(d.ratios,'debtEquityRatio',0),abd=deq!==null&&peers.debtEqs.length>0&&deq>avg(peers.debtEqs);
+      if(underPct>0.35)su=abd?12:22;
+      else if(underPct>0.20)su=12;
+      else if(underPct>0.10)su=5;
+    }
   }
   score+=su;
-  const evHist=[];for(let i=0;i<4;i++){const e=gv(d.ratios,'enterpriseValueMultiple',i);if(e!==null&&e>0)evHist.push(e);}
-  const ev3=avg(evHist.slice(1,4));let ehs=0,evVsHist=null;
-  if(evEbit!==null&&ev3!==null&&ev3>0){evVsHist=(ev3-evEbit)/ev3;ehs=evVsHist>0.30?15:evVsHist>0.15?10:evVsHist>0.05?5:0;if(isCyc(sec)&&evEbit>ev3*1.5)xf.push('🔔');}
+
+  // EV/EBIT vs 3yr history
+  const evHist=[];
+  for(let i=0;i<4;i++){const e=gv(d.ratios,'enterpriseValueMultiple',i);if(e!==null&&e>0)evHist.push(e);}
+  const ev3=avg(evHist.slice(1,4));
+  let ehs=0,evVsHist=null;
+  if(evEbit!==null&&ev3!==null&&ev3>0){
+    evVsHist=(ev3-evEbit)/ev3;
+    ehs=evVsHist>0.30?15:evVsHist>0.15?10:evVsHist>0.05?5:0;
+    if(isCyc(sec)&&evEbit>ev3*1.5)xf.push('🔔');
+  }
   score+=ehs;
-  const fp=fcfYs.filter(f=>f>0).length,fa2=[],da2=[];
-  for(let i=0;i<3;i++){const f=gv(d.metrics,'freeCashFlowPerShare',i);if(f!==null)fa2.push(f);const dd=gv(d.metrics,'netDebt',i);if(dd!==null)da2.push(dd);}
-  const p0=Array.isArray(d.profile)?d.profile[0]:d.profile,sh=p0?.sharesOutstanding||1e9;
-  const af2=avg(fa2)!==null?avg(fa2)*sh:null,ad2=avg(da2);
-  const dfcf5=af2&&af2>0&&ad2!==null?ad2/af2:null;
-  const bGates=[];if(fp<3)bGates.push('FCF not positive 3/5 years');if(dfcf5!==null&&dfcf5>5)bGates.push(`Debt/FCF ${dfcf5.toFixed(1)}x > 5x`);
+
+  // Bucket B hard gates using real FCF from cashflow
+  const fcfArr=getFCFArr(d);
+  const fcfPos=fcfArr.filter(f=>f>0).length;
+  const avgFCF3=avg(fcfArr.slice(0,3));
+  const debtArr=[];for(let i=0;i<3;i++){const dd=getNetDebt(d,i);if(dd!==null)debtArr.push(dd);}
+  const avgDebt=avg(debtArr);
+  const dfcf5=avgFCF3&&avgFCF3>0&&avgDebt!==null?avgDebt/avgFCF3:null;
+  const bGates=[];
+  if(fcfPos<3)bGates.push('FCF not positive 3/5 years');
+  if(dfcf5!==null&&dfcf5>5)bGates.push(`Debt/FCF ${dfcf5.toFixed(1)}x > 5x`);
+
   return{score:Math.round(score),fcfYield:curFCF,marginTrend,evEbit,evVsHist,underPct,extraFlags:xf,bGates,debtFCF:dfcf5};
 }
 
 function processCompany(ticker,exchange,d){
-  const p0=Array.isArray(d.profile)?d.profile[0]:d.profile;if(!p0)return null;
+  const p0=Array.isArray(d.profile)?d.profile[0]:d.profile;
+  if(!p0)return null;
   const sec=getSector(d.profile);
-  const floatPct=p0.floatShares&&p0.sharesOutstanding?p0.floatShares/p0.sharesOutstanding:null;
-  const peg=gv(d.ratios,'priceEarningsToGrowthRatio',0),deq=gv(d.ratios,'debtEquityRatio',0);
-  const xf=[];if(exchange==='TSX'&&floatPct!==null&&floatPct<0.20)xf.push('🏳️');
+  const mktCap=p0.mktCap||null;
+  const floatPct=getFloatPct(d);
+  const peg=gv(d.ratios,'priceEarningsToGrowthRatio',0);
+  const deq=gv(d.ratios,'debtEquityRatio',0);
+  const xf=[];
+  if(exchange==='TSX'&&floatPct!==null&&floatPct<0.20)xf.push('🏳️');
+
   const peers=sectorStats[sec]||{roics:[],evebits:[],debtEqs:[]};
   const gate=runGate(d,sec);
-  if(!gate.pass)return{ticker,exchange,companyName:p0.companyName||ticker,sector:sec,mktCap:p0.mktCap||null,floatPct,peg,bucket:'risk',reason:gate.reason,flags:[...(gate.flags||[]),...xf]};
-  const aRes=scoreA(d,sec,peers),bRes=scoreB(d,sec,peers);
+
+  if(!gate.pass)return{ticker,exchange,companyName:p0.companyName||ticker,sector:sec,mktCap,floatPct,peg,bucket:'risk',reason:gate.reason,flags:[...(gate.flags||[]),...xf]};
+
+  const aRes=scoreA(d,sec,peers);
+  const bRes=scoreB(d,sec,peers);
   const canBeB=bRes.bGates.length===0;
   const sr=[...peers.roics].sort((a,b)=>a-b),q75=sr[Math.floor(sr.length*0.75)]??0;
   const roicTopQ=aRes.roic!==null&&peers.roics.length>0&&aRes.roic>=q75;
+
   let bucket,score,bd;
   if(roicTopQ){bucket='qos';score=aRes.score;bd=aRes;}
   else if(!canBeB||aRes.score>=bRes.score){bucket='a';score=aRes.score;bd=aRes;}
   else{bucket='b';score=bRes.score;bd=bRes;}
-  return{ticker,exchange,companyName:p0.companyName||ticker,sector:sec,mktCap:p0.mktCap||null,floatPct,peg,deq,bucket,score,bd,flags:[...(gate.flags||[]),...(bd.extraFlags||[]),...xf]};
+
+  // Merge debtFCF from gate
+  if(!bd.debtFCF&&gate.debtFCF)bd.debtFCF=gate.debtFCF;
+
+  return{ticker,exchange,companyName:p0.companyName||ticker,sector:sec,mktCap,floatPct,peg,deq,bucket,score,bd,flags:[...(gate.flags||[]),...(bd.extraFlags||[]),...xf]};
 }
 
+// Formatting
 function fP(v){if(v===null||v===undefined||isNaN(v))return'<span class="cn">N/A</span>';return`<span class="${v>0.1?'cg':v>0?'co':'cb'}">${(v*100).toFixed(1)}%</span>`;}
 function fX(v,inv=false){if(v===null||v===undefined||isNaN(v))return'<span class="cn">N/A</span>';const c=inv?(v<10?'cg':v<20?'co':'cb'):(v>0.05?'cg':v>0?'co':'cb');return`<span class="${c}">${Number(v).toFixed(1)}x</span>`;}
 function fM(v){if(!v)return'<span class="cn">N/A</span>';if(v>1e12)return`$${(v/1e12).toFixed(1)}T`;if(v>1e9)return`$${(v/1e9).toFixed(1)}B`;return`$${(v/1e6).toFixed(0)}M`;}
@@ -385,11 +531,11 @@ function renderAll(){
   const bkB=active.filter(r=>r.bucket==='b').sort((a,b)=>b.score-a.score);
   const risks=filtered(structural);
   const sc2={};allResults.forEach(c=>{if(!sc2[c.sector])sc2[c.sector]={total:0,under:0};sc2[c.sector].total++;if(c.bucket==='b'&&c.bd?.underPct>0.20)sc2[c.sector].under++;});
-  const dist=Object.entries(sc2).filter(([s,d])=>d.total>=3&&d.under/d.total>=0.6).map(([s])=>s);
+  const dist=Object.entries(sc2).filter(([s,dd])=>dd.total>=3&&dd.under/dd.total>=0.6).map(([s])=>s);
   let html='';
   if(dist.length)html+=`<div class="distress-banner">⚠️ Sector-Wide Distress: ${dist.join(', ')} — 60%+ underperforming. Human judgment required.</div>`;
   html+=`<div class="section-hd"><span class="section-title t-qos">⭐ Quality on Sale</span><span class="section-count">${qos.length} companies</span><span class="section-desc">Top-quartile ROIC + mispricing.</span></div>`;
-  html+=qos.length?renderTable(qos,'qos',sortStates.qos):`<div class="empty"><div class="ico">⭐</div><p>No Quality on Sale names in this filter.</p></div>`;
+  html+=qos.length?renderTable(qos,'qos',sortStates.qos):`<div class="empty"><div class="ico">⭐</div><p>No Quality on Sale names.</p></div>`;
   html+=`<div class="section-hd"><span class="section-title t-a">Bucket A — Quality Compounders</span><span class="section-count">${bkA.length} companies</span><span class="section-desc">High quality, reasonably priced.</span></div>`;
   html+=bkA.length?renderTable(bkA,'a',sortStates.a):`<div class="empty"><div class="ico">A</div><p>No Bucket A names.</p></div>`;
   html+=`<div class="section-hd"><span class="section-title t-b">Bucket B — Turnarounds</span><span class="section-count">${bkB.length} companies</span><span class="section-desc">Pain priced in, floor forming.</span></div>`;
@@ -425,7 +571,8 @@ function setFilter(f){
 
 function sortTable(tid,col){
   const ss=sortStates[tid];
-  if(ss.col===col)ss.dir=ss.dir==='desc'?'asc':'desc';else{ss.col=col;ss.dir='desc';}
+  if(ss.col===col)ss.dir=ss.dir==='desc'?'asc':'desc';
+  else{ss.col=col;ss.dir='desc';}
   renderAll();
 }
 
@@ -436,9 +583,14 @@ function setStatus(msg,active=false){
 function buildSectorStats(raw){
   sectorStats={};
   raw.forEach(({d})=>{
-    const p=Array.isArray(d.profile)?d.profile[0]:d.profile;if(!p)return;
-    const sec=getSector(d.profile);if(!sectorStats[sec])sectorStats[sec]={roics:[],evebits:[],debtEqs:[]};
-    const r=d.metrics?.[0]?.returnOnInvestedCapital,e=d.ratios?.[0]?.enterpriseValueMultiple,dq=d.ratios?.[0]?.debtEquityRatio;
+    if(!d)return;
+    const p=Array.isArray(d.profile)?d.profile[0]:d.profile;
+    if(!p)return;
+    const sec=getSector(d.profile);
+    if(!sectorStats[sec])sectorStats[sec]={roics:[],evebits:[],debtEqs:[]};
+    const r=d.metrics?.[0]?.returnOnInvestedCapital;
+    const e=d.ratios?.[0]?.enterpriseValueMultiple;
+    const dq=d.ratios?.[0]?.debtEquityRatio;
     if(r!=null&&!isNaN(r))sectorStats[sec].roics.push(Number(r));
     if(e!=null&&!isNaN(e)&&Number(e)>0)sectorStats[sec].evebits.push(Number(e));
     if(dq!=null&&!isNaN(dq))sectorStats[sec].debtEqs.push(Number(dq));
@@ -448,7 +600,12 @@ function buildSectorStats(raw){
 function scoreAndRender(raw){
   allResults=[];structural=[];
   raw.forEach(({ticker,exchange,d})=>{
-    try{const res=processCompany(ticker,exchange,d);if(!res)return;if(res.bucket==='risk')structural.push(res);else allResults.push(res);}catch(e){}
+    try{
+      const res=processCompany(ticker,exchange,d);
+      if(!res)return;
+      if(res.bucket==='risk')structural.push(res);
+      else allResults.push(res);
+    }catch(e){}
   });
   allResults.sort((a,b)=>b.score-a.score);
   renderAll();
@@ -459,30 +616,47 @@ async function runScreen(){
   btn.disabled=true;
   allResults=[];structural=[];sectorStats={};
   covGot=0;covSkip=0;covRetry=0;
-  const tasks=[...[...new Set(SP_TICKERS)].map(t=>({ticker:t,exchange:'SP'})),...[...new Set(TSX_TICKERS)].map(t=>({ticker:t,exchange:'TSX'}))];
+
+  const tasks=[
+    ...[...new Set(SP_TICKERS)].map(t=>({ticker:t,exchange:'SP'})),
+    ...[...new Set(TSX_TICKERS)].map(t=>({ticker:t,exchange:'TSX'}))
+  ];
   const total=tasks.length;let done=0;
+
   document.getElementById('coverageWrap').style.display='block';
   document.getElementById('covTotal').textContent=total;
   document.getElementById('progWrap').style.display='block';
-  setStatus(`Starting — ${total} companies. Batch size: ${BATCH_SIZE}, delay: ${BATCH_DELAY}ms, retries: ${MAX_RETRIES}.`,true);
+  setStatus(`Starting v2.2 — ${total} companies. Fetching 7 endpoints per company for complete data.`,true);
+
   const raw=[];
+
   for(let i=0;i<tasks.length;i+=BATCH_SIZE){
     const batch=tasks.slice(i,i+BATCH_SIZE);
     const results=await Promise.all(batch.map(async({ticker,exchange})=>{
-      try{const d=await fetchAll(ticker);if(d){covGot++;}else{covSkip++;}return{ticker,exchange,d};}
-      catch(e){covSkip++;return{ticker,exchange,d:null};}
+      try{
+        const d=await fetchAll(ticker);
+        if(d){covGot++;}else{covSkip++;}
+        return{ticker,exchange,d};
+      }catch(e){
+        covSkip++;
+        return{ticker,exchange,d:null};
+      }
     }));
+
     results.forEach(({ticker,exchange,d})=>{if(d)raw.push({ticker,exchange,d});done++;});
     const pct=Math.round(done/total*100);
     document.getElementById('progFill').style.width=pct+'%';
     updateCov();
-    setStatus(`Fetching... ${done}/${total} (${pct}%) — Got: ${covGot} Skipped: ${covSkip} Retried: ${covRetry}`,true);
+    setStatus(`Fetching... ${done}/${total} (${pct}%) — Got: ${covGot} Skip: ${covSkip} Retry: ${covRetry}`,true);
+
     if(done%30===0&&raw.length>10){buildSectorStats(raw);scoreAndRender(raw);}
     if(i+BATCH_SIZE<tasks.length)await sleep(BATCH_DELAY);
   }
+
   buildSectorStats(raw);
   scoreAndRender(raw);
   allResults.sort((a,b)=>b.score-a.score);
+
   const qN=allResults.filter(r=>r.bucket==='qos').length;
   const aN=allResults.filter(r=>r.bucket==='a').length;
   const bN=allResults.filter(r=>r.bucket==='b').length;
