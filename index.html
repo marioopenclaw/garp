@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>GARP Screener v3.0</title>
+<title>GARP Screener v3.1</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
@@ -77,7 +77,7 @@ td{padding:10px 12px;white-space:nowrap;vertical-align:middle;}
 <header>
   <div class="header-row">
     <div>
-      <div class="label">// GARP Engine v3.0 — Clean Rewrite</div>
+      <div class="label">// GARP Engine v3.1 — TSX Fix</div>
       <h1>GROWTH AT A<br><em>REASONABLE</em><br>PRICE</h1>
     </div>
     <div class="universe-count">
@@ -97,7 +97,7 @@ td{padding:10px 12px;white-space:nowrap;vertical-align:middle;}
   <button class="btn-run btn" id="runBtn" onclick="runScreen()">▶ Run Screen</button>
 </div>
 
-<div class="status-bar" id="statusBar">Ready. v3.0 uses 3 endpoints, honest data handling, proper Bucket B logic.</div>
+<div class="status-bar" id="statusBar">Ready. v3.1 fixes TSX data fetching with explicit period and ratios fallback.</div>
 <div class="prog-wrap" id="progWrap"><div class="prog-fill" id="progFill"></div></div>
 <div id="output"><div class="empty"><div class="ico">📊</div><p>Press Run Screen to begin.</p></div></div>
 
@@ -189,25 +189,54 @@ function getMargins(d){
   return d.incomeA.map(x=>num(x?.grossProfitRatio)).filter(v=>v!==null);
 }
 
-// Returns array of FCF yields from key-metrics, most-recent first
+// Returns array of FCF yields, most-recent first
+// Tries key-metrics first, falls back to ratios for TSX names
 function getFcfYields(d){
-  if(!d.metrics||!d.metrics.length)return[];
-  return d.metrics.map(x=>num(x?.freeCashFlowYield)).filter(v=>v!==null);
+  // Primary: key-metrics
+  if(d.metrics&&d.metrics.length){
+    const arr=d.metrics.map(x=>num(x?.freeCashFlowYield)).filter(v=>v!==null);
+    if(arr.length)return arr;
+  }
+  // Fallback: ratios endpoint
+  if(d.ratios&&d.ratios.length){
+    const arr=d.ratios.map(x=>num(x?.freeCashFlowYield)).filter(v=>v!==null);
+    if(arr.length)return arr;
+  }
+  return[];
 }
 
-// Returns array of ROICs, most-recent first
+// Returns array of ROICs, most-recent first — with ratios fallback
 function getROICs(d){
-  if(!d.metrics||!d.metrics.length)return[];
-  return d.metrics.map(x=>num(x?.returnOnInvestedCapital)).filter(v=>v!==null);
+  if(d.metrics&&d.metrics.length){
+    const arr=d.metrics.map(x=>num(x?.returnOnInvestedCapital)).filter(v=>v!==null);
+    if(arr.length)return arr;
+  }
+  if(d.ratios&&d.ratios.length){
+    const arr=d.ratios.map(x=>num(x?.returnOnInvestedCapital)||num(x?.returnOnCapitalEmployed)).filter(v=>v!==null);
+    if(arr.length)return arr;
+  }
+  return[];
 }
 
-// EV/EBIT history
+// EV/EBIT history — with ratios fallback
 function getEvEbits(d){
-  if(!d.metrics||!d.metrics.length)return[];
-  return d.metrics.map(x=>{
-    const v=num(x?.enterpriseValueOverEBIT)||num(x?.enterpriseValueMultiple);
-    return(v!==null&&v>0)?v:null;
-  }).filter(v=>v!==null);
+  // Primary: key-metrics
+  if(d.metrics&&d.metrics.length){
+    const arr=d.metrics.map(x=>{
+      const v=num(x?.enterpriseValueOverEBIT)||num(x?.enterpriseValueMultiple);
+      return(v!==null&&v>0)?v:null;
+    }).filter(v=>v!==null);
+    if(arr.length)return arr;
+  }
+  // Fallback: ratios
+  if(d.ratios&&d.ratios.length){
+    const arr=d.ratios.map(x=>{
+      const v=num(x?.enterpriseValueMultiple)||num(x?.enterpriseValueOverEBITDA);
+      return(v!==null&&v>0)?v:null;
+    }).filter(v=>v!==null);
+    if(arr.length)return arr;
+  }
+  return[];
 }
 
 // Net debt — single number (most recent), or null
