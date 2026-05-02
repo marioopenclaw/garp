@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>GARP Screener v3.1</title>
+<title>GARP Screener v3.2</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
@@ -77,21 +77,19 @@ td{padding:10px 12px;white-space:nowrap;vertical-align:middle;}
 <header>
   <div class="header-row">
     <div>
-      <div class="label">// GARP Engine v3.1 — TSX Fix</div>
+      <div class="label">// GARP Engine v3.2 — S&P Edition</div>
       <h1>GROWTH AT A<br><em>REASONABLE</em><br>PRICE</h1>
     </div>
     <div class="universe-count">
-      <div class="big-num">560</div>
+      <div class="big-num">390</div>
       <div class="big-label">Companies</div>
     </div>
   </div>
-  <p class="subtitle">Quality compounders, turnarounds with recovery signature, and structural risks — separated, scored, ranked.</p>
+  <p class="subtitle">Quality compounders, turnarounds with recovery signature, and structural risks across the US large/mid-cap universe — separated, scored, ranked.</p>
 </header>
 
 <div class="controls">
   <button class="btn active" id="f-all" onclick="setFilter('all')">All</button>
-  <button class="btn" id="f-sp" onclick="setFilter('sp')">S&P</button>
-  <button class="btn" id="f-tsx" onclick="setFilter('tsx')">TSX</button>
   <button class="btn" id="f-qos" onclick="setFilter('qos')">⭐ QoS</button>
   <button class="btn" id="f-b" onclick="setFilter('b')">Turnarounds</button>
   <button class="btn-run btn" id="runBtn" onclick="runScreen()">▶ Run Screen</button>
@@ -600,8 +598,6 @@ function renderAll(){
 }
 
 function filtered(arr){
-  if(currentFilter==='sp')return arr.filter(r=>r.exchange==='SP');
-  if(currentFilter==='tsx')return arr.filter(r=>r.exchange==='TSX');
   if(currentFilter==='qos')return arr.filter(r=>r.bucket==='qos');
   if(currentFilter==='b')return arr.filter(r=>r.bucket==='b');
   return arr;
@@ -609,7 +605,7 @@ function filtered(arr){
 
 function setFilter(f){
   currentFilter=f;
-  ['all','sp','tsx','qos','b'].forEach(id=>document.getElementById('f-'+id).classList.toggle('active',id===f));
+  ['all','qos','b'].forEach(id=>document.getElementById('f-'+id).classList.toggle('active',id===f));
   if(allResults.length||structural.length)renderAll();
 }
 
@@ -628,10 +624,7 @@ async function runScreen(){
   btn.disabled=true;
   allResults=[];structural=[];sectorStats={};
   covGot=0;covSkip=0;
-  const tasks=[
-    ...[...new Set(SP_TICKERS)].map(t=>({ticker:t,exchange:'SP'})),
-    ...[...new Set(TSX_TICKERS)].map(t=>({ticker:t,exchange:'TSX'}))
-  ];
+  const tasks=[...new Set(SP_TICKERS)].map(t=>({ticker:t,exchange:'SP'}));
   const total=tasks.length;let done=0;
   document.getElementById('progWrap').style.display='block';
   setStatus(`Starting v3.0 — ${total} companies, 3 endpoints each.`,true);
