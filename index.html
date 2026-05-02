@@ -152,16 +152,19 @@ async function fmpFetch(url){
 async function fetchAll(ticker){
   const enc=encodeURIComponent(ticker);
   const k=`&apikey=${API_KEY}`;
-  const[profile,metrics,incomeA]=await Promise.all([
+  // Explicit period=annual for all financial endpoints — TSX tickers fail without this
+  const[profile,metrics,ratios,incomeA]=await Promise.all([
     fmpFetch(`${BASE}/profile?symbol=${enc}${k}`),
-    fmpFetch(`${BASE}/key-metrics?symbol=${enc}&limit=5${k}`),
-    fmpFetch(`${BASE}/income-statement?symbol=${enc}&limit=5${k}`),
+    fmpFetch(`${BASE}/key-metrics?symbol=${enc}&period=annual&limit=5${k}`),
+    fmpFetch(`${BASE}/ratios?symbol=${enc}&period=annual&limit=5${k}`),
+    fmpFetch(`${BASE}/income-statement?symbol=${enc}&period=annual&limit=5${k}`),
   ]);
   const p=Array.isArray(profile)&&profile.length>0?profile:null;
   if(!p)return null;
   return{
     profile:p,
     metrics:Array.isArray(metrics)?metrics:[],
+    ratios:Array.isArray(ratios)?ratios:[],
     incomeA:Array.isArray(incomeA)?incomeA:[],
   };
 }
